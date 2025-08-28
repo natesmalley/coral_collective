@@ -1,0 +1,11 @@
+# Agent Force Requirements
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
+PyYAML>=6.0
+rich>=13.0.0
+pyperclip>=1.8.2
+
+# Optional but recommended
+python-dotenv>=1.0.0
+click>=8.1.0

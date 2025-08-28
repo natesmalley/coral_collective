@@ -1,0 +1,103 @@
+version: 1
+agents:
+  project_architect:
+    role: architect
+    prompt_path: agents/core/project_architect.md
+    capabilities: [planning, architecture, structure, handoff]
+
+  technical_writer_phase1:
+    role: technical_writer
+    phase: 1
+    prompt_path: agents/core/technical_writer.md
+    capabilities: [requirements, api_specs, acceptance_criteria, templates]
+
+  technical_writer_phase2:
+    role: technical_writer
+    phase: 2
+    prompt_path: agents/core/technical_writer.md
+    capabilities: [user_docs, deployment_docs, troubleshooting, reference]
+
+  api_designer:
+    role: api_designer
+    prompt_path: agents/specialists/api_designer.md
+    capabilities: [api_spec, contracts, auth, rate_limits]
+
+  database_specialist:
+    role: database_specialist
+    prompt_path: agents/specialists/database_specialist.md
+    capabilities: [schema, indexing, migrations, backups]
+
+  data_engineer:
+    role: data_engineer
+    prompt_path: agents/specialists/data_engineer.md
+    capabilities: [pipelines, etl, quality, monitoring]
+
+  backend_developer:
+    role: backend
+    prompt_path: agents/specialists/backend_developer.md
+    capabilities: [api, auth, models, docs, tests]
+
+  frontend_developer:
+    role: frontend
+    prompt_path: agents/specialists/frontend_developer.md
+    capabilities: [ui, accessibility, integration, performance, tests]
+
+  mobile_developer:
+    role: mobile_developer
+    prompt_path: agents/specialists/mobile_developer.md
+    capabilities: [ios, android, integration, offline]
+
+  ai_ml_specialist:
+    role: ai_ml
+    prompt_path: agents/specialists/ai_ml_specialist.md
+    capabilities: [models, endpoints, vector_db, evals]
+
+  security_specialist:
+    role: security
+    prompt_path: agents/specialists/security_specialist.md
+    capabilities: [authz, encryption, headers, scanning]
+
+  performance_engineer:
+    role: performance_engineer
+    prompt_path: agents/specialists/performance_engineer.md
+    capabilities: [profiling, optimization, load_test, caching]
+
+  accessibility_specialist:
+    role: accessibility
+    prompt_path: agents/specialists/accessibility_specialist.md
+    capabilities: [wcag, aria, keyboard, testing]
+
+  analytics_engineer:
+    role: analytics_engineer
+    prompt_path: agents/specialists/analytics_engineer.md
+    capabilities: [taxonomy, schemas, instrumentation, dashboards]
+
+  compliance_specialist:
+    role: compliance
+    prompt_path: agents/specialists/compliance_specialist.md
+    capabilities: [pii, retention, dsr, audits]
+
+  site_reliability_engineer:
+    role: site_reliability_engineer
+    prompt_path: agents/specialists/site_reliability_engineer.md
+    capabilities: [slos, monitoring, alerts, runbooks, dr]
+
+  qa_testing:
+    role: qa
+    prompt_path: agents/specialists/qa_testing.md
+    capabilities: [unit, integration, coverage, accessibility]
+
+  devops_deployment:
+    role: devops
+    prompt_path: agents/specialists/devops_deployment.md
+    capabilities: [cicd, infra, deploy, backups]
+
+  ui_designer:
+    role: ui_designer
+    prompt_path: agents/specialists/ui_designer.md
+    capabilities: [design_system, components, accessibility_requirements, handoff]
+
+  full_stack_engineer:
+    role: full_stack_engineer
+    prompt_path: agents/specialists/full_stack_engineer.md
+    capabilities: [full_stack, debugging, production_ops, product_thinking, support, prototyping]

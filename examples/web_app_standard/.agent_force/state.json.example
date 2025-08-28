@@ -1,0 +1,15 @@
+{
+  "current_phase": "planning",
+  "context": {
+    "project_path": "./examples/web_app_standard",
+    "project_name": "ExampleWebApp",
+    "tech_stack": {},
+    "requirements": {},
+    "completed_tasks": [],
+    "metadata": {}
+  },
+  "execution_history": [],
+  "agent_metrics": {},
+  "timestamp": "2025-01-01T00:00:00Z"
+}
+
