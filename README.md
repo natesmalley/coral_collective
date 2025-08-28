@@ -1,20 +1,22 @@
-# AI Development Team - Agent Force
+# Agent Force 🤖
 
-A comprehensive set of 8 specialist AI agents that work together in a Documentation-First approach for building applications with Claude Code + Cursor.
+An intelligent orchestration system with 20 specialized AI agents for automated software development.
 
 ## 🚀 Quick Start
 
-### Step 1: Start Your Project
 ```bash
-# Begin with the Project Architect
-1. Open agents/core/project_architect.md
-2. Copy the prompt
-3. Provide your app requirements
-4. Follow the handoff instructions
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch Agent Force
+./start.sh
 ```
 
-### Step 2: Follow the Workflow
-Each agent provides clear handoff instructions to the next agent. Simply follow the chain!
+This opens an interactive command center where you can:
+- Run individual agents
+- Execute complete workflows
+- Manage multiple projects
+- Track performance metrics
 
 ## 📋 Documentation-First Workflow
 
