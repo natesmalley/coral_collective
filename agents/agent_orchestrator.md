@@ -66,7 +66,7 @@ The Agent Orchestrator manages the complete AI development team workflow, ensuri
 
 1. **Begin with Project Architect**
    ```
-   Copy the prompt from: agents/core/project_architect.md
+   Use this agent prompt from: agents/core/project_architect.md
    Provide your app requirements and answer clarifying questions
    ```
 
@@ -228,7 +228,7 @@ Each agent provides structured handoff information:
 → Follow the sequence until project complete
 ```
 
-## Integration with Claude Code + Cursor
+## Integration with Claude Code
 
 All agents are optimized for:
 - TypeScript support

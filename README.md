@@ -232,7 +232,7 @@ Each agent prompt can be customized for your specific needs:
 
 All agents are optimized for:
 - **Claude Code**: AI-powered development assistance
-- **Cursor IDE**: AI-first code editor
+- **Claude Code IDE**: AI-first code editor
 - **TypeScript**: Type-safe development
 - **Modern Frameworks**: React, Next.js, Node.js, etc.
 

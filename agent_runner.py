@@ -207,7 +207,7 @@ Please complete this task following your specialized expertise and provide clear
         # Display the task
         console.print(Panel(task, title="Task", border_style="yellow"))
         
-        # Copy prompt to clipboard for easy use with Claude
+        # Prepare prompt for Claude Code agent execution
         try:
             import pyperclip
             pyperclip.copy(full_prompt)
