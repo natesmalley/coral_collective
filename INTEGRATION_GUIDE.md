@@ -1,4 +1,4 @@
-# 🔄 Agent Force Integration Guide
+# 🔄 CoralCollective Integration Guide
 
 ## How to Use Agents in Other Projects
 
@@ -6,7 +6,7 @@
 
 #### Step 1: Copy the Agent Prompt
 ```bash
-# From your agent_force directory, copy any agent prompt
+# From your coral_collective directory, copy any agent prompt
 cat agents/specialists/backend_developer.md
 
 # Or copy the prompt content directly from the file
@@ -22,7 +22,7 @@ Simply paste the agent prompt into Claude Code when working on any project. The 
 #### Step 1: Add Agent Force as a Submodule
 ```bash
 # In your new project directory
-git submodule add https://github.com/natesmalley/agent_force.git agent_force
+git submodule add https://github.com/natesmalley/coral_collective.git coral_collective
 git submodule init
 git submodule update
 ```
@@ -30,11 +30,11 @@ git submodule update
 #### Step 2: Use the Agents
 ```bash
 # Run agents from the submodule
-cd agent_force
+cd coral_collective
 ./start.sh
 
 # Or reference agent prompts directly
-cat agent_force/agents/specialists/full_stack_engineer.md
+cat coral_collective/agents/specialists/full_stack_engineer.md
 ```
 
 ---
@@ -45,18 +45,18 @@ cat agent_force/agents/specialists/full_stack_engineer.md
 ```bash
 # Keep agent_force in a central location
 cd ~/tools  # or wherever you keep tools
-git clone https://github.com/natesmalley/agent_force.git
+git clone https://github.com/natesmalley/coral_collective.git
 ```
 
 #### Step 2: Create Alias for Easy Access
 ```bash
 # Add to ~/.bashrc or ~/.zshrc
-alias agents='cd ~/tools/agent_force && ./start.sh'
-alias run-agent='python ~/tools/agent_force/agent_runner.py'
+alias coral='cd ~/tools/coral_collective && ./start.sh'
+alias coral-agent='python ~/tools/coral_collective/agent_runner.py'
 
 # Now from any project:
-agents  # Opens Agent Force command center
-run-agent --agent backend-developer --task "Build API for user auth"
+coral  # Opens CoralCollective command center
+coral-agent --agent backend-developer --task "Build API for user auth"
 ```
 
 ---
@@ -65,8 +65,8 @@ run-agent --agent backend-developer --task "Build API for user auth"
 
 #### Step 1: Create a Project with Agent Force
 ```bash
-# Use agent_force to bootstrap new projects
-cd ~/tools/agent_force
+# Use coral_collective to bootstrap new projects
+cd ~/tools/coral_collective
 ./start.sh
 # Select "1. Run Agent Workflow"
 # Choose project type
@@ -76,7 +76,7 @@ cd ~/tools/agent_force
 #### Step 2: Move Generated Code
 ```bash
 # After agents create your project structure
-cp -r ~/tools/agent_force/projects/your_project ~/your-actual-project
+cp -r ~/tools/coral_collective/projects/your_project ~/your-actual-project
 cd ~/your-actual-project
 ```
 
@@ -87,7 +87,7 @@ cd ~/your-actual-project
 #### Step 1: Install Agent Force
 ```bash
 # In your project's virtual environment
-pip install -e /path/to/agent_force
+pip install -e /path/to/coral_collective
 ```
 
 #### Step 2: Use in Python Scripts

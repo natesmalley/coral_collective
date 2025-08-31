@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Agent Force Runner - Main operational interface for running agents with automatic tracking
+CoralCollective Runner - Main operational interface for running agents with automatic tracking
 """
 
 import os
@@ -41,7 +41,7 @@ class AgentRunner:
     
     def list_agents(self, category: Optional[str] = None):
         """Display available agents in a nice table"""
-        table = Table(title="🤖 Available Agent Force Specialists")
+        table = Table(title="🪸 Available CoralCollective Specialists")
         table.add_column("Agent ID", style="cyan", no_wrap=True)
         table.add_column("Name", style="magenta")
         table.add_column("Category", style="green")
@@ -512,7 +512,7 @@ def main():
     if args.command == 'interactive':
         # Interactive menu
         while True:
-            console.print("\n[bold cyan]🤖 Agent Force Command Center[/bold cyan]")
+            console.print("\n[bold cyan]🪸 CoralCollective Command Center[/bold cyan]")
             console.print("\n1. Run Single Agent")
             console.print("2. Run Workflow Wizard")
             console.print("3. List Agents")

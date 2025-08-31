@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Agent Force Quick Start Script
-# This script provides easy access to all Agent Force functionality
+# CoralCollective Quick Start Script
+# This script provides easy access to all CoralCollective functionality
 
-echo "🤖 Agent Force - AI Development Team"
-echo "===================================="
+echo "🪸 CoralCollective - AI Development Colony"
+echo "=========================================="
 echo ""
 
 # Check if Python is installed
@@ -32,8 +32,8 @@ clear
 # Main menu
 while true; do
     echo ""
-    echo "🤖 AGENT FORCE COMMAND CENTER"
-    echo "============================="
+    echo "🪸 CORALCOLLECTIVE COMMAND CENTER"
+    echo "================================="
     echo ""
     echo "1. 🚀 Run Agent Workflow (Recommended)"
     echo "2. 🎯 Run Single Agent"
@@ -132,8 +132,8 @@ m.export_project('$project_name', '$format')
             ;;
         8)
             echo ""
-            echo "👋 Thank you for using Agent Force!"
-            echo "Your feedback helps improve the agents."
+            echo "👋 Thank you for using CoralCollective!"
+            echo "Your feedback helps the colony grow stronger."
             exit 0
             ;;
         *)

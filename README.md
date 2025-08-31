@@ -1,6 +1,6 @@
-# Agent Force 🤖
+# CoralCollective 🪸
 
-An intelligent orchestration system with 20 specialized AI agents for automated software development.
+The collective intelligence for evolutionary development - 20 specialized AI agents working as a unified colony to build your digital reef.
 
 ## 🚀 Quick Start
 
@@ -8,11 +8,11 @@ An intelligent orchestration system with 20 specialized AI agents for automated 
 # Install dependencies
 pip install -r requirements.txt
 
-# Launch Agent Force
+# Launch CoralCollective
 ./start.sh
 ```
 
-This opens an interactive command center where you can:
+This opens the CoralCollective command center where you can:
 - Run individual agents
 - Execute complete workflows
 - Manage multiple projects
