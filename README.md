@@ -50,6 +50,7 @@ This opens the CoralCollective command center where you can:
 - **[Security Specialist](agents/specialists/security_specialist.md)** - Security and compliance
 - **[DevOps & Deployment](agents/specialists/devops_deployment.md)** - Infrastructure specialist
 - **[QA & Testing](agents/specialists/qa_testing.md)** - Quality assurance expert
+- **[Model Strategy Specialist](agents/specialists/model_strategy_specialist.md)** - AI model optimization & cost management
 
 ## 📁 Project Structure
 

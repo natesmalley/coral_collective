@@ -97,6 +97,11 @@ agents:
     prompt_path: agents/specialists/ui_designer.md
     capabilities: [design_system, components, accessibility_requirements, handoff]
 
+  model_strategy_specialist:
+    role: model_strategy
+    prompt_path: agents/specialists/model_strategy_specialist.md
+    capabilities: [model_research, pricing_analysis, performance_benchmarking, cost_optimization, configuration_management, usage_monitoring, strategy_documentation]
+
   full_stack_engineer:
     role: full_stack_engineer
     prompt_path: agents/specialists/full_stack_engineer.md

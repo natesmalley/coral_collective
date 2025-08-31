@@ -1,0 +1,250 @@
+# Model Assignments Configuration - 2025
+# Maintained by Model Strategy Specialist Agent
+# Last Updated: January 2025
+
+version: 2025.1
+last_updated: 2025-01-31
+
+# Model Registry
+models:
+  premium:
+    claude-opus-4.1:
+      provider: anthropic
+      cost_per_1M_input: 15.00
+      cost_per_1M_output: 75.00
+      max_context: 200000
+      strengths: [deep_reasoning, complex_coding, security_analysis]
+      
+    gpt-5-pro:
+      provider: openai
+      access: subscription_only
+      monthly_cost: 200.00
+      strengths: [advanced_reasoning, research, complex_analysis]
+  
+  production:
+    gpt-5:
+      provider: openai
+      cost_per_1M_input: 1.25
+      cost_per_1M_output: 10.00
+      cache_discount: 0.90
+      max_context: large
+      strengths: [general_coding, multimodal, cost_effective]
+      
+    claude-sonnet-4:
+      provider: anthropic
+      cost_per_1M_input: 3.00
+      cost_per_1M_output: 15.00
+      batch_discount: 0.50
+      prompt_cache_discount: 0.90
+      max_context: 1000000  # beta
+      strengths: [balanced_performance, coding, long_context]
+      
+    claude-3.5-sonnet:
+      provider: anthropic
+      cost_per_1M_input: 3.00
+      cost_per_1M_output: 15.00
+      max_context: 200000
+      strengths: [reliable, general_development]
+      status: legacy
+  
+  efficiency:
+    gpt-5-mini:
+      provider: openai
+      cost_per_1M_input: 0.30  # estimated
+      cost_per_1M_output: 2.00  # estimated
+      strengths: [simple_tasks, high_volume, fast]
+      
+    claude-3.5-haiku:
+      provider: anthropic
+      cost_per_1M_input: 0.80
+      cost_per_1M_output: 4.00
+      max_context: 200000
+      strengths: [documentation, simple_edits, real_time]
+      
+    gpt-5-nano:
+      provider: openai
+      cost_per_1M_input: 0.15  # estimated
+      cost_per_1M_output: 1.00  # estimated
+      strengths: [simplest_tasks, maximum_economy]
+      
+  specialized:
+    gpt-5-thinking:
+      provider: openai
+      access: subscription_included
+      strengths: [transparent_reasoning, complex_problem_solving]
+      note: uses_reasoning_tokens
+
+# Agent to Model Assignments
+agent_assignments:
+  # Core Agents
+  project_architect:
+    primary: claude-opus-4.1
+    fallback: gpt-5
+    budget: claude-sonnet-4
+    max_tokens: 25000
+    
+  technical_writer_phase1:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 15000
+    
+  technical_writer_phase2:
+    primary: claude-3.5-haiku
+    fallback: gpt-5-mini
+    max_tokens: 10000
+    
+  # Development Specialists
+  backend_developer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    budget: gpt-5-mini
+    max_tokens: 25000
+    
+  frontend_developer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    budget: claude-3.5-haiku
+    max_tokens: 20000
+    
+  full_stack_engineer:
+    primary: claude-opus-4.1
+    fallback: gpt-5-thinking
+    max_tokens: 30000
+    
+  mobile_developer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 20000
+    
+  # AI/ML Specialists
+  ai_ml_specialist:
+    primary: gpt-5-thinking
+    fallback: claude-opus-4.1
+    max_tokens: 25000
+    
+  analytics_engineer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    budget: gpt-5-mini
+    max_tokens: 15000
+    
+  # Infrastructure & Operations
+  devops_deployment:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    budget: claude-3.5-haiku
+    max_tokens: 15000
+    
+  site_reliability_engineer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 12000
+    
+  database_specialist:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 15000
+    
+  data_engineer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 15000
+    
+  # Security & Compliance
+  security_specialist:
+    primary: claude-opus-4.1
+    fallback: gpt-5-pro  # when available
+    never_use: [gpt-5-mini, gpt-5-nano, claude-3.5-haiku]
+    max_tokens: 20000
+    
+  compliance_specialist:
+    primary: claude-opus-4.1
+    fallback: gpt-5-thinking
+    max_tokens: 12000
+    
+  # Design & Quality
+  ui_designer:
+    primary: gpt-5-mini
+    fallback: claude-3.5-haiku
+    upgrade_to: gpt-5  # for complex design systems
+    max_tokens: 10000
+    
+  accessibility_specialist:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 12000
+    
+  qa_testing:
+    primary: gpt-5
+    fallback: claude-opus-4.1  # for critical testing
+    budget: gpt-5-mini
+    max_tokens: 20000
+    
+  performance_engineer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 15000
+    
+  # API & Integration
+  api_designer:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    budget: gpt-5-mini
+    max_tokens: 12000
+    
+  # Model Strategy
+  model_strategy_specialist:
+    primary: gpt-5
+    fallback: claude-sonnet-4
+    max_tokens: 20000
+    note: responsible_for_maintaining_this_file
+
+# Dynamic Selection Rules
+selection_rules:
+  - condition: task_complexity == "critical"
+    models: [claude-opus-4.1, gpt-5-pro]
+    
+  - condition: task_complexity == "complex"
+    models: [gpt-5, claude-sonnet-4]
+    
+  - condition: task_complexity == "standard"
+    models: [gpt-5, claude-3.5-sonnet]
+    
+  - condition: task_complexity == "simple"
+    models: [gpt-5-mini, claude-3.5-haiku]
+    
+  - condition: budget_mode == true
+    prefer: [gpt-5-mini, gpt-5-nano, claude-3.5-haiku]
+    
+  - condition: security_critical == true
+    require: [claude-opus-4.1]
+    exclude: [gpt-5-mini, gpt-5-nano, claude-3.5-haiku]
+
+# Cost Optimization Settings
+optimization:
+  enable_caching: true
+  cache_threshold_tokens: 1000
+  batch_processing: true
+  batch_size: 10
+  
+  token_budgets:
+    daily_limit: 1000000
+    weekly_limit: 5000000
+    monthly_limit: 20000000
+    
+  cost_alerts:
+    daily_threshold: 100.00
+    weekly_threshold: 500.00
+    monthly_threshold: 2000.00
+
+# Performance Tracking
+metrics:
+  track_success_rate: true
+  track_token_usage: true
+  track_response_time: true
+  track_cost_per_task: true
+  
+  reporting:
+    frequency: weekly
+    format: [json, markdown]
+    destination: reports/model_metrics/
