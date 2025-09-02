@@ -313,11 +313,10 @@ Please complete this task following your specialized expertise and provide clear
 
                 payload = compose(agent_id=agent_id, task=task, runner=self, project_context=project_context)
 
-                # Budgeting
-                max_input_tokens = int(os.environ.get('CORAL_MAX_INPUT_TOKENS', args.max_input_tokens if 'args' in globals() else 12000))  # type: ignore
-                reserve_output = int(os.environ.get('CORAL_RESERVE_OUTPUT_TOKENS', args.reserve_output_tokens if 'args' in globals() else 1024))  # type: ignore
-                streaming = bool(os.environ.get('CORAL_STREAMING', str(args.streaming if 'args' in globals() else False)).lower() in ['1','true','yes'])  # type: ignore
-                expand = bool(os.environ.get('CORAL_EXPAND', str(args.expand if 'args' in globals() else True)).lower() in ['1','true','yes'])  # type: ignore
+                # Token limits and streaming settings (env overrides CLI/defaults)
+                max_input_tokens = int(os.environ.get('CORAL_MAX_INPUT_TOKENS', max_input_tokens))
+                streaming_flag = bool(os.environ.get('CORAL_STREAMING', str(streaming)).lower() in ['1','true','yes'])
+                expand = bool(os.environ.get('CORAL_EXPAND', str(expand)).lower() in ['1','true','yes'])
 
                 estimator = TokenEstimator()
                 sections = build_sections(payload, expand=expand)
@@ -374,10 +373,10 @@ Please complete this task following your specialized expertise and provide clear
                         renderer.deliver(part_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
                 else:
                     # Default streaming: if total fits window and user disabled streaming, single-shot; else stream by chunk_tokens
-                    if total_tokens <= max_input_tokens and not args.streaming:
+                    if total_tokens <= max_input_tokens and not streaming_flag:
                         saved_path = renderer.deliver(output_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=filename_stub)
                     else:
-                        chunk_size = int(os.environ.get('CORAL_CHUNK_TOKENS', args.chunk_tokens if 'args' in globals() else max_input_tokens))  # type: ignore
+                        chunk_size = int(os.environ.get('CORAL_CHUNK_TOKENS', chunk_tokens))
                         chunk_size = max(1, min(chunk_size, max_input_tokens))
                         chunks = chunk_text(output_text, estimator, chunk_tokens=chunk_size)
                         for idx, ch in enumerate(chunks, start=1):
@@ -854,6 +853,9 @@ def main():
                        help='Include optional sections (context/tools) when budget allows')
     parser.add_argument('--no-expand', dest='expand', action='store_false',
                        help='Disable optional sections regardless of budget')
+    parser.add_argument('--model', help='Tokenizer/model hint for token estimation (e.g., openai:gpt-4o, anthropic:claude-3.5-sonnet)')
+    parser.add_argument('--validate-tokens', action='store_true',
+                       help='Print token counts for total and parts/chunks')
     
     args = parser.parse_args()
     
@@ -927,6 +929,12 @@ def main():
             non_interactive=args.non_interactive,
             provider=args.provider,
             deliver=args.deliver,
+            max_input_tokens=args.max_input_tokens,
+            streaming=args.streaming,
+            chunk_tokens=args.chunk_tokens,
+            expand=args.expand,
+            model=args.model if hasattr(args, 'model') else None,
+            validate_tokens=args.validate_tokens if hasattr(args, 'validate_tokens') else False,
         )
     
     elif args.command == 'workflow':
