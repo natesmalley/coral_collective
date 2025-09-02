@@ -344,7 +344,8 @@ Please complete this task following your specialized expertise and provide clear
 
                 # Decide mode: default streaming; if context + header exceeds window, batch by context parts
                 context_exceeds = (header_tokens + ctx_tokens) > max_input_tokens if ctx_section else False
-
+                if validate_tokens:
+                    console.print(f"[cyan]Token estimate[/cyan]: total={total_tokens}, cap={max_input_tokens}, header={header_tokens}, context={ctx_tokens}")
                 if context_exceeds:
                     # Batch by slicing context to fit with header per part
                     available_for_ctx = max(1, max_input_tokens - header_tokens)
@@ -369,6 +370,8 @@ Please complete this task following your specialized expertise and provide clear
                         if task_sec:
                             per_part_sections.append(task_sec)
                         part_text = renderer.render_sections(per_part_sections)
+                        if validate_tokens:
+                            console.print(f"[cyan]context part {idx}/{total_parts} tokens[/cyan]: {estimator.estimate(part_text)}")
                         stub = f"{filename_stub}.part{idx}"
                         renderer.deliver(part_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
                 else:
@@ -380,6 +383,8 @@ Please complete this task following your specialized expertise and provide clear
                         chunk_size = max(1, min(chunk_size, max_input_tokens))
                         chunks = chunk_text(output_text, estimator, chunk_tokens=chunk_size)
                         for idx, ch in enumerate(chunks, start=1):
+                            if validate_tokens:
+                                console.print(f"[cyan]chunk {idx} tokens[/cyan]: {estimator.estimate(ch)}")
                             stub = f"{filename_stub}.part{idx}"
                             renderer.deliver(ch, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
 
