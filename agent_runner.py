@@ -302,7 +302,7 @@ Please complete this task following your specialized expertise and provide clear
         # Adapter path: if a provider is specified, render+deliver via adapter with budgeting support
         if provider:
             try:
-                from agent_prompt_service import compose, build_sections, TokenEstimator, fit_sections_to_budget, chunk_text
+                from agent_prompt_service import compose, build_sections, TokenEstimator, chunk_text
                 if provider == 'claude':
                     from providers.claude import ClaudeProvider as Provider
                 elif provider == 'codex':
@@ -321,40 +321,32 @@ Please complete this task following your specialized expertise and provide clear
 
                 estimator = TokenEstimator()
                 sections = build_sections(payload, expand=expand)
-                budget = max(1, max_input_tokens - reserve_output)
-                fitted = fit_sections_to_budget(sections, estimator, budget_tokens=budget)
 
-                output_text = None
-                saved_path = None
+                # Render full text with all sections; no truncation
                 if Provider is None:
-                    # Default renderer with simple headings
                     from providers.provider_base import BaseProvider
-                    output_text = BaseProvider().render_sections(fitted)
+                    renderer = BaseProvider()
                 else:
-                    output_text = Provider().render_sections(fitted)
+                    renderer = Provider()
+                output_text = renderer.render_sections(sections)
 
-                # Streaming support: split into chunks if requested
+                # Determine if batching is needed
+                total_tokens = estimator.estimate(output_text)
                 mode = deliver or ('file' if non_interactive else 'stdout')
                 filename_stub = f"agent_{agent_id}_{int(time.time())}"
-                if streaming:
-                    chunk_size = int(os.environ.get('CORAL_CHUNK_TOKENS', args.chunk_tokens if 'args' in globals() else 4000))  # type: ignore
+                saved_path = None
+
+                needs_batch = total_tokens > max_input_tokens or streaming
+                if needs_batch:
+                    # Chunk to the configured size, capped at max_input_tokens
+                    chunk_size = int(os.environ.get('CORAL_CHUNK_TOKENS', args.chunk_tokens if 'args' in globals() else max_input_tokens))  # type: ignore
+                    chunk_size = max(1, min(chunk_size, max_input_tokens))
                     chunks = chunk_text(output_text, estimator, chunk_tokens=chunk_size)
-                    if Provider is None:
-                        from providers.provider_base import BaseProvider
-                        prov = BaseProvider()
-                    else:
-                        prov = Provider()
-                    # Deliver each chunk
                     for idx, ch in enumerate(chunks, start=1):
                         stub = f"{filename_stub}.part{idx}"
-                        prov.deliver(ch, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
+                        renderer.deliver(ch, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
                 else:
-                    if Provider is None:
-                        from providers.provider_base import BaseProvider
-                        prov = BaseProvider()
-                    else:
-                        prov = Provider()
-                    saved_path = prov.deliver(output_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=filename_stub)
+                    saved_path = renderer.deliver(output_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=filename_stub)
 
                 result = {
                     'agent': agent_id,
