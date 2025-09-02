@@ -814,8 +814,8 @@ def main():
                        help='Delivery method for rendered prompt')
     parser.add_argument('--max-input-tokens', type=int, default=12000,
                        help='Max input tokens for composed prompt')
-    parser.add_argument('--reserve-output-tokens', type=int, default=1024,
-                       help='Reserve tokens for model output')
+    parser.add_argument('--reserve-output-tokens', type=int, default=0,
+                       help='Reserve tokens for model output (set 0 to ignore)')
     parser.add_argument('--streaming', action='store_true',
                        help='Stream prompt in chunks (by token estimate)')
     parser.add_argument('--chunk-tokens', type=int, default=4000,

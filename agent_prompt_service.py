@@ -231,14 +231,19 @@ def fit_sections_to_budget(
             secs = test
             break
 
-    # 3) Truncate role prompt (required)
+    # 3) Truncate role prompt (required) progressively until we fit
     for i, s in enumerate(secs):
         if s['key'] == 'role_prompt':
+            # Coarse passes
             for ratio in (0.75, 0.5, 0.35, 0.25):
                 s['text'] = _truncate_text_by_ratio(s['text'], ratio)
                 if total_tokens(secs) <= budget_tokens:
                     return secs
-            # As a last resort, keep severely truncated role prompt
+            # Fine-grained trimming loop
+            ratio = 0.25
+            while total_tokens(secs) > budget_tokens and len(s['text']) > 0:
+                ratio *= 0.85
+                s['text'] = _truncate_text_by_ratio(s['text'], ratio)
             return secs
 
     return secs
@@ -262,4 +267,3 @@ def chunk_text(text: str, estimator: TokenEstimator, chunk_tokens: int = 2000) -
     if buf:
         chunks.append(''.join(buf).strip())
     return chunks
-
