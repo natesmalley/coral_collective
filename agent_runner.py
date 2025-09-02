@@ -330,23 +330,59 @@ Please complete this task following your specialized expertise and provide clear
                     renderer = Provider()
                 output_text = renderer.render_sections(sections)
 
-                # Determine if batching is needed
+                # Determine if batching is needed: default streaming, but if context alone + header can't fit, batch context
                 total_tokens = estimator.estimate(output_text)
                 mode = deliver or ('file' if non_interactive else 'stdout')
                 filename_stub = f"agent_{agent_id}_{int(time.time())}"
                 saved_path = None
 
-                needs_batch = total_tokens > max_input_tokens or streaming
-                if needs_batch:
-                    # Chunk to the configured size, capped at max_input_tokens
-                    chunk_size = int(os.environ.get('CORAL_CHUNK_TOKENS', args.chunk_tokens if 'args' in globals() else max_input_tokens))  # type: ignore
-                    chunk_size = max(1, min(chunk_size, max_input_tokens))
-                    chunks = chunk_text(output_text, estimator, chunk_tokens=chunk_size)
-                    for idx, ch in enumerate(chunks, start=1):
+                # Identify sections and tokens
+                ctx_section = next((s for s in sections if s['key'] == 'project_context'), None)
+                header_sections = [s for s in sections if s.get('key') != 'project_context']
+                header_text = renderer.render_sections(header_sections)
+                header_tokens = estimator.estimate(header_text)
+                ctx_tokens = estimator.estimate(ctx_section['text']) if ctx_section else 0
+
+                # Decide mode: default streaming; if context + header exceeds window, batch by context parts
+                context_exceeds = (header_tokens + ctx_tokens) > max_input_tokens if ctx_section else False
+
+                if context_exceeds:
+                    # Batch by slicing context to fit with header per part
+                    available_for_ctx = max(1, max_input_tokens - header_tokens)
+                    context_chunks = chunk_text(ctx_section['text'], estimator, chunk_tokens=available_for_ctx)
+                    total_parts = len(context_chunks) if context_chunks else 1
+                    for idx, ctx_chunk in enumerate(context_chunks or [""], start=1):
+                        per_part_sections = []
+                        # Keep role prompt and optional tools
+                        for s in header_sections:
+                            if s['key'] in ('role_prompt', 'mcp_tools'):
+                                per_part_sections.append(s)
+                        # Context part
+                        if ctx_section:
+                            per_part_sections.append({
+                                'key': 'project_context',
+                                'title': f"PROJECT CONTEXT (part {idx}/{total_parts})",
+                                'text': ctx_chunk,
+                                'required': False,
+                            })
+                        # Always include task at the end
+                        task_sec = next((s for s in header_sections if s['key'] == 'task'), None)
+                        if task_sec:
+                            per_part_sections.append(task_sec)
+                        part_text = renderer.render_sections(per_part_sections)
                         stub = f"{filename_stub}.part{idx}"
-                        renderer.deliver(ch, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
+                        renderer.deliver(part_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
                 else:
-                    saved_path = renderer.deliver(output_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=filename_stub)
+                    # Default streaming: if total fits window and user disabled streaming, single-shot; else stream by chunk_tokens
+                    if total_tokens <= max_input_tokens and not args.streaming:
+                        saved_path = renderer.deliver(output_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=filename_stub)
+                    else:
+                        chunk_size = int(os.environ.get('CORAL_CHUNK_TOKENS', args.chunk_tokens if 'args' in globals() else max_input_tokens))  # type: ignore
+                        chunk_size = max(1, min(chunk_size, max_input_tokens))
+                        chunks = chunk_text(output_text, estimator, chunk_tokens=chunk_size)
+                        for idx, ch in enumerate(chunks, start=1):
+                            stub = f"{filename_stub}.part{idx}"
+                            renderer.deliver(ch, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
 
                 result = {
                     'agent': agent_id,
@@ -808,8 +844,10 @@ def main():
                        help='Max input tokens for composed prompt')
     parser.add_argument('--reserve-output-tokens', type=int, default=0,
                        help='Reserve tokens for model output (set 0 to ignore)')
-    parser.add_argument('--streaming', action='store_true',
-                       help='Stream prompt in chunks (by token estimate)')
+    parser.add_argument('--streaming', action='store_true', default=True,
+                       help='Stream prompt in chunks (default on)')
+    parser.add_argument('--no-streaming', dest='streaming', action='store_false',
+                       help='Disable streaming (single-part delivery when possible)')
     parser.add_argument('--chunk-tokens', type=int, default=4000,
                        help='Chunk size in tokens when streaming')
     parser.add_argument('--expand', action='store_true', default=True,
