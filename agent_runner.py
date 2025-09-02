@@ -299,10 +299,10 @@ Please complete this task following your specialized expertise and provide clear
         # Display the task
         console.print(Panel(task, title="Task", border_style="yellow"))
 
-        # Adapter path: if a provider is specified, render+deliver via adapter and exit early
+        # Adapter path: if a provider is specified, render+deliver via adapter with budgeting support
         if provider:
             try:
-                from agent_prompt_service import compose
+                from agent_prompt_service import compose, build_sections, TokenEstimator, fit_sections_to_budget, chunk_text
                 if provider == 'claude':
                     from providers.claude import ClaudeProvider as Provider
                 elif provider == 'codex':
@@ -312,17 +312,49 @@ Please complete this task following your specialized expertise and provide clear
                     Provider = None  # type: ignore
 
                 payload = compose(agent_id=agent_id, task=task, runner=self, project_context=project_context)
-                output_text = payload.to_default_text() if Provider is None else Provider().render(payload)
 
-                # Deliver
-                mode = deliver or ('file' if non_interactive else 'stdout')
-                filename_stub = f"agent_{agent_id}_{int(time.time())}"
+                # Budgeting
+                max_input_tokens = int(os.environ.get('CORAL_MAX_INPUT_TOKENS', args.max_input_tokens if 'args' in globals() else 12000))  # type: ignore
+                reserve_output = int(os.environ.get('CORAL_RESERVE_OUTPUT_TOKENS', args.reserve_output_tokens if 'args' in globals() else 1024))  # type: ignore
+                streaming = bool(os.environ.get('CORAL_STREAMING', str(args.streaming if 'args' in globals() else False)).lower() in ['1','true','yes'])  # type: ignore
+                expand = bool(os.environ.get('CORAL_EXPAND', str(args.expand if 'args' in globals() else True)).lower() in ['1','true','yes'])  # type: ignore
+
+                estimator = TokenEstimator()
+                sections = build_sections(payload, expand=expand)
+                budget = max(1, max_input_tokens - reserve_output)
+                fitted = fit_sections_to_budget(sections, estimator, budget_tokens=budget)
+
+                output_text = None
                 saved_path = None
                 if Provider is None:
-                    # default delivery
-                    print(output_text)
+                    # Default renderer with simple headings
+                    from providers.provider_base import BaseProvider
+                    output_text = BaseProvider().render_sections(fitted)
                 else:
-                    saved_path = Provider().deliver(output_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=filename_stub)
+                    output_text = Provider().render_sections(fitted)
+
+                # Streaming support: split into chunks if requested
+                mode = deliver or ('file' if non_interactive else 'stdout')
+                filename_stub = f"agent_{agent_id}_{int(time.time())}"
+                if streaming:
+                    chunk_size = int(os.environ.get('CORAL_CHUNK_TOKENS', args.chunk_tokens if 'args' in globals() else 4000))  # type: ignore
+                    chunks = chunk_text(output_text, estimator, chunk_tokens=chunk_size)
+                    if Provider is None:
+                        from providers.provider_base import BaseProvider
+                        prov = BaseProvider()
+                    else:
+                        prov = Provider()
+                    # Deliver each chunk
+                    for idx, ch in enumerate(chunks, start=1):
+                        stub = f"{filename_stub}.part{idx}"
+                        prov.deliver(ch, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=stub)
+                else:
+                    if Provider is None:
+                        from providers.provider_base import BaseProvider
+                        prov = BaseProvider()
+                    else:
+                        prov = Provider()
+                    saved_path = prov.deliver(output_text, mode=mode, base_dir=self.base_path / 'prompts', filename_stub=filename_stub)
 
                 result = {
                     'agent': agent_id,
@@ -780,6 +812,18 @@ def main():
                        help='Render prompt via provider adapter')
     parser.add_argument('--deliver', choices=['stdout', 'clipboard', 'file'],
                        help='Delivery method for rendered prompt')
+    parser.add_argument('--max-input-tokens', type=int, default=12000,
+                       help='Max input tokens for composed prompt')
+    parser.add_argument('--reserve-output-tokens', type=int, default=1024,
+                       help='Reserve tokens for model output')
+    parser.add_argument('--streaming', action='store_true',
+                       help='Stream prompt in chunks (by token estimate)')
+    parser.add_argument('--chunk-tokens', type=int, default=4000,
+                       help='Chunk size in tokens when streaming')
+    parser.add_argument('--expand', action='store_true', default=True,
+                       help='Include optional sections (context/tools) when budget allows')
+    parser.add_argument('--no-expand', dest='expand', action='store_false',
+                       help='Disable optional sections regardless of budget')
     
     args = parser.parse_args()
     

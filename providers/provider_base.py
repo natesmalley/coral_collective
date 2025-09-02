@@ -22,6 +22,16 @@ class BaseProvider:
     def render(self, payload) -> str:  # noqa: ANN001 - generic payload
         raise NotImplementedError
 
+    def render_sections(self, sections) -> str:  # noqa: ANN001 - generic sections
+        # Generic fallback rendering using simple headings
+        lines = []
+        for s in sections:
+            title = s.get('title', s.get('key', 'SECTION'))
+            lines.append(f"## {title}")
+            lines.append(str(s.get('text', '')))
+            lines.append("")
+        return "\n".join(lines).strip() + "\n"
+
     def deliver(
         self,
         output_text: str,
@@ -54,4 +64,3 @@ class BaseProvider:
             # Unknown mode -> stdout
             print(output_text)
             return None
-

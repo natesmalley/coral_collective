@@ -34,3 +34,11 @@ class CodexProvider(BaseProvider):
             f"OUTPUT: Provide concrete deliverables and handoff guidance.\n"
         )
 
+    def render_sections(self, sections) -> str:  # noqa: ANN001
+        parts = []
+        for s in sections:
+            title = s.get('title', s.get('key', 'SECTION')).upper()
+            parts.append(f"{title}:")
+            parts.append(str(s.get('text', '')))
+            parts.append("")
+        return "\n".join(parts).strip() + "\n"

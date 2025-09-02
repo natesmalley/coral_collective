@@ -10,6 +10,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+import math
+from typing import List, Tuple
+import re
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -91,4 +94,172 @@ def compose(
         project_context=project_context,
         mcp_tools=mcp_tools,
     )
+
+
+# --- Token utilities and budgeting ---
+
+class TokenEstimator:
+    """Rough token estimator with optional tiktoken support."""
+
+    def __init__(self, model: Optional[str] = None):
+        self.model = model or "generic"
+        self._tk = None
+        try:  # optional dependency
+            import tiktoken  # type: ignore
+
+            # Select encoding if model known; fallback to cl100k_base
+            try:
+                enc = tiktoken.encoding_for_model(self.model)
+            except Exception:
+                enc = tiktoken.get_encoding("cl100k_base")
+            self._tk = enc
+        except Exception:
+            self._tk = None
+
+    def estimate(self, text: str) -> int:
+        if not text:
+            return 0
+        if self._tk is not None:
+            try:
+                return len(self._tk.encode(text))
+            except Exception:
+                pass
+        # Fallback heuristic: ~4 chars/token
+        return max(1, math.ceil(len(text) / 4))
+
+
+def build_sections(payload: PromptPayload, expand: bool = True) -> List[Dict[str, Any]]:
+    """Build ordered sections with required/optional flags before provider rendering."""
+    sections: List[Dict[str, Any]] = []
+    sections.append({
+        'key': 'role_prompt',
+        'title': 'ROLE PROMPT',
+        'text': payload.base_prompt,
+        'required': True,
+    })
+
+    # Project context is optional; include if provided or expand requested
+    context_text = None
+    if payload.project_context is not None:
+        context_text = json.dumps(payload.project_context, indent=2)
+    elif expand:
+        context_text = "New project"
+    if context_text is not None:
+        sections.append({
+            'key': 'project_context',
+            'title': 'PROJECT CONTEXT',
+            'text': context_text,
+            'required': False,
+        })
+
+    # MCP tools optional
+    if expand and payload.mcp_tools:
+        sections.append({
+            'key': 'mcp_tools',
+            'title': 'MCP TOOLS',
+            'text': json.dumps(payload.mcp_tools, indent=2),
+            'required': False,
+        })
+
+    sections.append({
+        'key': 'task',
+        'title': 'TASK',
+        'text': payload.task,
+        'required': True,
+    })
+
+    return sections
+
+
+def _truncate_text_by_ratio(text: str, ratio: float) -> str:
+    if ratio >= 1.0:
+        return text
+    if ratio <= 0:
+        return ""
+    n = max(1, int(len(text) * ratio))
+    # Try to end on a sentence boundary
+    truncated = text[:n]
+    m = re.search(r"[\.!?]\s+\Z", truncated)
+    return truncated if m else truncated.rstrip() + "…"
+
+
+def fit_sections_to_budget(
+    sections: List[Dict[str, Any]],
+    estimator: TokenEstimator,
+    budget_tokens: int,
+    overhead_tokens: int = 128,
+) -> List[Dict[str, Any]]:
+    """Reduce optional sections and truncate long ones to fit budget.
+
+    Strategy:
+    1) Drop MCP tools if needed
+    2) Truncate project context progressively; drop if still too large
+    3) Truncate role prompt until it fits
+    Required sections (role_prompt, task) are preserved; task is not truncated.
+    """
+    # Work on a copy
+    secs = [dict(s) for s in sections]
+
+    def total_tokens(items: List[Dict[str, Any]]) -> int:
+        return sum(estimator.estimate(s['text']) for s in items) + overhead_tokens
+
+    # Quick success path
+    if total_tokens(secs) <= budget_tokens:
+        return secs
+
+    # 1) Drop MCP tools if present
+    for i, s in list(enumerate(secs)):
+        if s['key'] == 'mcp_tools':
+            test = secs[:i] + secs[i+1:]
+            if total_tokens(test) <= budget_tokens:
+                return test
+            secs = test
+            break
+
+    # 2) Truncate project context
+    for i, s in list(enumerate(secs)):
+        if s['key'] == 'project_context':
+            # Iteratively reduce to 75%, 50%, 25%
+            for ratio in (0.75, 0.5, 0.25):
+                s['text'] = _truncate_text_by_ratio(s['text'], ratio)
+                if total_tokens(secs) <= budget_tokens:
+                    return secs
+            # Drop entirely if still too big
+            test = secs[:i] + secs[i+1:]
+            if total_tokens(test) <= budget_tokens:
+                return test
+            secs = test
+            break
+
+    # 3) Truncate role prompt (required)
+    for i, s in enumerate(secs):
+        if s['key'] == 'role_prompt':
+            for ratio in (0.75, 0.5, 0.35, 0.25):
+                s['text'] = _truncate_text_by_ratio(s['text'], ratio)
+                if total_tokens(secs) <= budget_tokens:
+                    return secs
+            # As a last resort, keep severely truncated role prompt
+            return secs
+
+    return secs
+
+
+def chunk_text(text: str, estimator: TokenEstimator, chunk_tokens: int = 2000) -> List[str]:
+    """Split text into chunks near chunk_tokens boundaries, preferring paragraph breaks."""
+    paragraphs = re.split(r"(\n\n+)", text)  # keep separators
+    chunks: List[str] = []
+    buf = []
+    buf_tokens = 0
+    for part in paragraphs:
+        ptoks = estimator.estimate(part)
+        if buf_tokens + ptoks > chunk_tokens and buf:
+            chunks.append(''.join(buf).strip())
+            buf = [part]
+            buf_tokens = ptoks
+        else:
+            buf.append(part)
+            buf_tokens += ptoks
+    if buf:
+        chunks.append(''.join(buf).strip())
+    return chunks
 

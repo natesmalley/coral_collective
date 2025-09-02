@@ -35,3 +35,12 @@ class ClaudeProvider(BaseProvider):
             f"Please execute with your specialization and provide handoff notes if applicable.\n"
         )
 
+    def render_sections(self, sections) -> str:  # noqa: ANN001
+        lines = []
+        for s in sections:
+            title = s.get('title', s.get('key', 'Section')).title()
+            # Claude-style markdown headers
+            lines.append(f"## {title}")
+            lines.append(str(s.get('text', '')))
+            lines.append("")
+        return "\n".join(lines).strip() + "\n"
