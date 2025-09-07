@@ -1,0 +1,407 @@
+name: CoralCollective Test Suite
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*', 'hotfix/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run tests daily at 6 AM UTC
+    - cron: '0 6 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-matrix:
+    name: Test Suite (Python ${{ matrix.python-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        exclude:
+          # Reduce matrix size for faster CI
+          - os: macos-latest
+            python-version: '3.9'
+          - os: windows-latest
+            python-version: '3.9'
+          - os: windows-latest
+            python-version: '3.10'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for better coverage
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: 'requirements.txt'
+
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        
+    - name: Activate virtual environment (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        source venv/bin/activate
+        echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+        echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+
+    - name: Activate virtual environment (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        venv\Scripts\activate
+        echo "VIRTUAL_ENV=$env:VIRTUAL_ENV" >> $env:GITHUB_ENV
+        echo "$env:VIRTUAL_ENV\Scripts" >> $env:GITHUB_PATH
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip wheel setuptools
+        pip install -r requirements.txt
+        pip install pytest-xdist pytest-cov pytest-benchmark
+
+    - name: Verify virtual environment
+      run: |
+        python -c "import sys; print('Python:', sys.executable)"
+        python -c "import sys; print('Virtual env:', hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix))"
+        pip list
+
+    - name: Run unit tests
+      run: |
+        pytest tests/unit/ -v \
+          --cov=. \
+          --cov-report=xml:coverage-unit.xml \
+          --cov-report=term-missing \
+          --junit-xml=test-results-unit.xml \
+          -m "unit and not slow" \
+          --durations=10
+
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ -v \
+          --cov=. --cov-append \
+          --cov-report=xml:coverage-integration.xml \
+          --junit-xml=test-results-integration.xml \
+          -m "integration and not slow" \
+          --durations=10
+
+    - name: Run end-to-end tests (fast)
+      run: |
+        pytest tests/e2e/ -v \
+          --cov=. --cov-append \
+          --cov-report=xml:coverage-e2e.xml \
+          --junit-xml=test-results-e2e.xml \
+          -m "e2e and not slow and not requires_external" \
+          --durations=10
+
+    - name: Generate combined coverage report
+      run: |
+        pytest --cov=. \
+          --cov-report=xml:coverage-combined.xml \
+          --cov-report=html:coverage-html \
+          --cov-report=term \
+          --cov-fail-under=75 \
+          tests/ -m "not slow and not requires_external" \
+          --quiet
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
+      with:
+        files: coverage-combined.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false  # Don't fail CI if codecov fails
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: |
+          test-results-*.xml
+          coverage-*.xml
+          coverage-html/
+
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: test-matrix
+    if: github.event_name != 'schedule'  # Skip on scheduled runs
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+        echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-benchmark memory-profiler
+
+    - name: Run performance tests
+      run: |
+        pytest tests/ -v \
+          -m "performance" \
+          --benchmark-only \
+          --benchmark-json=benchmark-results.json \
+          --durations=10
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: benchmark-results
+        path: benchmark-results.json
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install security tools
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install safety bandit[toml] semgrep
+
+    - name: Run safety check (dependency vulnerabilities)
+      run: |
+        source venv/bin/activate
+        safety check --json --output safety-report.json || true
+
+    - name: Run bandit (security linting)
+      run: |
+        source venv/bin/activate
+        bandit -r . -f json -o bandit-report.json || true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          safety-report.json
+          bandit-report.json
+
+  lint-and-format:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install linting tools
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install ruff black isort mypy
+
+    - name: Run ruff (fast linting)
+      run: |
+        source venv/bin/activate
+        ruff check . --output-format=github
+
+    - name: Check code formatting (black)
+      run: |
+        source venv/bin/activate
+        black --check --diff .
+
+    - name: Check import sorting (isort)
+      run: |
+        source venv/bin/activate
+        isort --check-only --diff .
+
+    - name: Run type checking (mypy)
+      run: |
+        source venv/bin/activate
+        mypy . --ignore-missing-imports || true
+
+  docker-tests:
+    name: Docker Build and Test
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: |
+        docker build -t coral-collective:test .
+
+    - name: Test Docker container
+      run: |
+        # Start container in background
+        docker run -d --name coral-test -p 8000:8000 coral-collective:test
+        
+        # Wait for container to start
+        sleep 10
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/health || exit 1
+        
+        # Stop container
+        docker stop coral-test
+        docker rm coral-test
+
+    - name: Test docker-compose
+      run: |
+        # Test docker-compose configuration
+        docker-compose config
+        
+        # Build and start services
+        docker-compose up -d --build
+        
+        # Wait for services to start
+        sleep 30
+        
+        # Test services
+        docker-compose ps
+        curl -f http://localhost/health || exit 1
+        
+        # Cleanup
+        docker-compose down
+
+  release-readiness:
+    name: Release Readiness Check
+    runs-on: ubuntu-latest
+    needs: [test-matrix, performance-tests, security-scan, lint-and-format]
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check version bump
+      run: |
+        # Check if version has been updated in setup.py or pyproject.toml
+        if git diff origin/main --name-only | grep -E "(setup.py|pyproject.toml)"; then
+          echo "Version file changed - checking for version bump"
+          # Add version validation logic here
+        else
+          echo "⚠️ Version files not changed - consider updating version for release"
+        fi
+
+    - name: Check CHANGELOG
+      run: |
+        if git diff origin/main --name-only | grep CHANGELOG.md; then
+          echo "✅ CHANGELOG.md updated"
+        else
+          echo "⚠️ CHANGELOG.md not updated - consider documenting changes"
+        fi
+
+    - name: Summary
+      run: |
+        echo "🎉 All checks passed! Ready for release consideration."
+        echo "📊 Test Coverage: Check artifacts for detailed coverage report"
+        echo "🚀 Performance: Check benchmark results in artifacts"
+        echo "🔒 Security: Check security scan results in artifacts"
+
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [test-matrix, performance-tests, security-scan, lint-and-format]
+    if: always() && github.event_name != 'schedule'
+
+    steps:
+    - name: Determine overall result
+      id: result
+      run: |
+        if [[ "${{ needs.test-matrix.result }}" == "success" && \
+              "${{ needs.lint-and-format.result }}" == "success" ]]; then
+          echo "result=success" >> $GITHUB_OUTPUT
+          echo "message=✅ All tests passed successfully!" >> $GITHUB_OUTPUT
+        else
+          echo "result=failure" >> $GITHUB_OUTPUT
+          echo "message=❌ Some tests failed. Check the logs for details." >> $GITHUB_OUTPUT
+        fi
+
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const message = `
+          ## 🧪 Test Results
+          
+          ${{ steps.result.outputs.message }}
+          
+          **Test Summary:**
+          - Unit Tests: ${{ needs.test-matrix.result }}
+          - Integration Tests: ${{ needs.test-matrix.result }}
+          - Performance Tests: ${{ needs.performance-tests.result }}
+          - Security Scan: ${{ needs.security-scan.result }}
+          - Lint & Format: ${{ needs.lint-and-format.result }}
+          
+          **Artifacts:**
+          - 📊 Test Results and Coverage Reports
+          - 🏃 Performance Benchmarks
+          - 🔒 Security Scan Results
+          
+          View detailed results in the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          });
+
+env:
+  # Test environment variables
+  CORAL_ENV: test
+  PYTHONPATH: ${{ github.workspace }}
+  DISABLE_ANALYTICS: true
+  LOG_LEVEL: ERROR
+  
+  # Performance test thresholds
+  PYTEST_TIMEOUT: 300
+  MAX_MEMORY_MB: 512
+  
+  # Coverage settings
+  COVERAGE_FAIL_UNDER: 75

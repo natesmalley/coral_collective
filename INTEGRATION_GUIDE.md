@@ -239,8 +239,8 @@ Create `.vscode/tasks.json`:
       "type": "shell",
       "command": "python",
       "args": [
-        "${env:HOME}/tools/agent_force/agent_runner.py",
-        "run",
+        "${env:HOME}/tools/coral_collective/claude_interface.py",
+        "get-prompt",
         "--agent",
         "${input:agentName}",
         "--task",

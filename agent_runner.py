@@ -19,15 +19,17 @@ from rich.prompt import Prompt, IntPrompt, Confirm
 from rich.panel import Panel
 from rich.markdown import Markdown
 from tools.feedback_collector import FeedbackCollector
+from tools.project_state import ProjectStateManager
 
 console = Console()
 
-# Try to import MCP client if available
+# Try to import MCP client and bridge if available
 MCP_AVAILABLE = False
 mcp_client = None
 try:
     sys.path.append(str(Path(__file__).parent / 'mcp'))
     from mcp_client import MCPClient
+    from tools.agent_mcp_bridge import AgentMCPBridge, MCPToolsPromptGenerator
     MCP_AVAILABLE = True
 except ImportError:
     pass
@@ -38,15 +40,22 @@ class AgentRunner:
         self.standalone_mode = self.detect_standalone_mode()
         self.agents_config = self.load_agents_config()
         self.collector = FeedbackCollector()
+        self.state_manager = ProjectStateManager(self.base_path)
         self.mcp_client = None
         
         # Initialize MCP if available
+        self.mcp_enabled = False
         if MCP_AVAILABLE:
             try:
                 self.mcp_client = MCPClient()
+                self.mcp_enabled = True
                 console.print("[green]✓ MCP integration loaded[/green]")
             except Exception as e:
                 console.print(f"[yellow]MCP available but not configured: {e}[/yellow]")
+                self.mcp_client = None
+        
+        # Track active MCP bridges
+        self.active_bridges: Dict[str, AgentMCPBridge] = {}
         self.current_project = None
         self.session_data = {
             'start_time': datetime.now(),
@@ -245,10 +254,82 @@ class AgentRunner:
         
         return content
     
-    def run_agent(self, agent_id: str, task: str, project_context: Optional[Dict] = None, non_interactive: bool = False,
-                  provider: Optional[str] = None, deliver: Optional[str] = None) -> Dict:
+    async def initialize_mcp(self) -> bool:
+        """Initialize MCP client connections"""
+        if not self.mcp_enabled or not self.mcp_client:
+            return False
+        
+        try:
+            await self.mcp_client.initialize()
+            console.print("[green]✓ MCP client initialized[/green]")
+            return True
+        except Exception as e:
+            console.print(f"[red]Failed to initialize MCP: {e}[/red]")
+            return False
+    
+    async def get_agent_bridge(self, agent_id: str, mcp_enabled: bool = True) -> Optional[AgentMCPBridge]:
+        """Get or create an MCP bridge for an agent"""
+        if not mcp_enabled or not self.mcp_enabled or not MCP_AVAILABLE:
+            return None
+        
+        # Check if we already have a bridge for this agent
+        if agent_id in self.active_bridges:
+            return self.active_bridges[agent_id]
+        
+        try:
+            # Initialize MCP if not done yet
+            if not self.mcp_client.initialized:
+                await self.initialize_mcp()
+            
+            # Create new bridge
+            bridge = AgentMCPBridge(agent_id, self.mcp_client)
+            self.active_bridges[agent_id] = bridge
+            
+            console.print(f"[green]✓ MCP bridge created for {agent_id}[/green]")
+            return bridge
+            
+        except Exception as e:
+            console.print(f"[yellow]Failed to create MCP bridge for {agent_id}: {e}[/yellow]")
+            return None
+    
+    async def close_agent_bridge(self, agent_id: str):
+        """Close and cleanup an agent's MCP bridge"""
+        if agent_id in self.active_bridges:
+            bridge = self.active_bridges[agent_id]
+            try:
+                await bridge.close()
+                console.print(f"[green]✓ MCP bridge closed for {agent_id}[/green]")
+            except Exception as e:
+                console.print(f"[yellow]Error closing MCP bridge for {agent_id}: {e}[/yellow]")
+            finally:
+                del self.active_bridges[agent_id]
+    
+    async def close_all_bridges(self):
+        """Close all active MCP bridges"""
+        for agent_id in list(self.active_bridges.keys()):
+            await self.close_agent_bridge(agent_id)
+        
+        if self.mcp_client:
+            try:
+                await self.mcp_client.shutdown()
+                console.print("[green]✓ MCP client shutdown complete[/green]")
+            except Exception as e:
+                console.print(f"[yellow]Error during MCP shutdown: {e}[/yellow]")
+    
+    def add_mcp_enabled_flag(self, parser: argparse.ArgumentParser):
+        """Add MCP-related command line flags"""
+        parser.add_argument('--mcp-enabled', action='store_true', default=True,
+                           help='Enable MCP tool integration (default: True)')
+        parser.add_argument('--no-mcp', dest='mcp_enabled', action='store_false',
+                           help='Disable MCP tool integration')
+    
+    async def run_agent(self, agent_id: str, task: str, project_context: Optional[Dict] = None, non_interactive: bool = False,
+                      provider: Optional[str] = None, deliver: Optional[str] = None, mcp_enabled: bool = True) -> Dict:
         """Execute an agent with a specific task"""
         start_time = time.time()
+        
+        # Record agent start in state manager
+        self.state_manager.record_agent_start(agent_id, task, project_context)
         
         agent = self.agents_config['agents'][agent_id]
         console.print(f"\n[bold green]🚀 Running {agent['name']}...[/bold green]")
@@ -266,19 +347,22 @@ class AgentRunner:
         
         # Add MCP tools if available
         mcp_tools_section = ""
-        if self.mcp_client:
+        agent_bridge = None
+        
+        if mcp_enabled and self.mcp_enabled:
             try:
-                available_tools = self.mcp_client.get_tools_for_agent(agent_id)
-                if available_tools:
-                    mcp_tools_section = f"""
-MCP TOOLS AVAILABLE:
-You have access to the following MCP tools for direct action:
-{json.dumps(available_tools, indent=2)}
-
-You can use these tools to directly manipulate files, databases, and services.
-"""
-            except:
-                pass
+                agent_bridge = await self.get_agent_bridge(agent_id, mcp_enabled)
+                if agent_bridge:
+                    # Generate comprehensive MCP tools documentation
+                    prompt_generator = MCPToolsPromptGenerator(agent_bridge)
+                    mcp_tools_section = await prompt_generator.generate_tools_section()
+                    
+                    if mcp_tools_section:
+                        console.print(f"[green]✓ MCP tools available for {agent_id}[/green]")
+                    else:
+                        console.print(f"[yellow]No MCP tools available for {agent_id}[/yellow]")
+            except Exception as e:
+                console.print(f"[yellow]Failed to setup MCP tools: {e}[/yellow]")
         
         full_prompt = f"""
 {agent_prompt}
@@ -415,7 +499,7 @@ Please complete this task following your specialized expertise and provide clear
         
         # Handle non-interactive mode
         if non_interactive:
-            console.print("\n[bold cyan]Agent Prompt Generated:[/bold cyan]")
+            console.print("\n[bold cyan]Agent Prompt Generated (Non-Interactive Mode):[/bold cyan]")
             console.print(Panel(full_prompt[:2000] + ("..." if len(full_prompt) > 2000 else ""), 
                               title=f"{agent['name']} Prompt", border_style="green"))
             
@@ -426,17 +510,52 @@ Please complete this task following your specialized expertise and provide clear
             with open(prompt_file, 'w') as f:
                 f.write(full_prompt)
             
-            console.print(f"\n[green]✓ Prompt saved to: {prompt_file}[/green]")
-            console.print("[yellow]Copy the prompt above and paste into Claude Code[/yellow]")
+            # Also save to a latest symlink for easy access
+            latest_file = self.base_path / f"prompts/latest_{agent_id}.md"
+            if latest_file.exists():
+                latest_file.unlink()
+            try:
+                latest_file.symlink_to(prompt_file.name)
+            except:
+                # Fallback for Windows
+                import shutil
+                shutil.copy(prompt_file, latest_file)
             
-            # Return without waiting for feedback
-            return {
+            console.print(f"\n[green]✓ Prompt saved to: {prompt_file}[/green]")
+            console.print(f"[green]✓ Latest prompt: {latest_file}[/green]")
+            console.print(f"[cyan]Agent: {agent['name']} running in automation mode[/cyan]")
+            
+            # Record completion in state manager
+            result = {
                 'agent': agent_id,
+                'agent_name': agent['name'],
                 'task': task,
                 'prompt_file': str(prompt_file),
+                'latest_file': str(latest_file),
                 'timestamp': timestamp,
-                'success': True
+                'success': True,
+                'non_interactive': True,
+                'mode': 'automated'
             }
+            
+            # Track in state manager
+            self.state_manager.record_agent_completion(
+                agent_id, 
+                success=True,
+                outputs=result,
+                artifacts=[{
+                    'type': 'prompt',
+                    'path': str(prompt_file)
+                }]
+            )
+            
+            # Return success without waiting for any user input
+            return result
+        
+        # Auto-enable non-interactive for certain contexts
+        if os.environ.get('CI') or os.environ.get('CORAL_NON_INTERACTIVE') or os.environ.get('CORAL_AUTOMATION'):
+            console.print("[yellow]Auto-detected automation environment - switching to non-interactive mode[/yellow]")
+            return self.run_agent(agent_id, task, context, non_interactive=True)
         
         # Interactive mode - existing behavior
         if Confirm.ask("Show full prompt?", default=False):
@@ -502,6 +621,11 @@ Please complete this task following your specialized expertise and provide clear
                 'next_task': next_task
             }
         
+        # Collect MCP metrics if bridge was used
+        mcp_metrics = {}
+        if agent_bridge:
+            mcp_metrics = agent_bridge.get_session_metrics()
+        
         result = {
             'agent': agent_id,
             'task': task,
@@ -509,7 +633,8 @@ Please complete this task following your specialized expertise and provide clear
             'satisfaction': satisfaction,
             'completion_time': completion_time,
             'handoff': handoff,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'mcp_metrics': mcp_metrics
         }
         
         # Store in session
@@ -698,9 +823,14 @@ Please complete this task following your specialized expertise and provide clear
         if Confirm.ask("\nStart workflow?", default=True):
             self.run_workflow(sequence, project)
     
-    def run_workflow(self, sequence: List[str], project: Dict):
+    def run_workflow(self, sequence: List[str], project: Dict, non_interactive: bool = False):
         """Run a sequence of agents"""
         console.print("\n[bold cyan]Starting Workflow Execution[/bold cyan]")
+        
+        # Check for non-interactive environment
+        if os.environ.get('CI') or os.environ.get('CORAL_NON_INTERACTIVE') or os.environ.get('CORAL_AUTOMATION'):
+            non_interactive = True
+            console.print("[yellow]Running workflow in non-interactive mode[/yellow]")
         
         context = {
             'project': project,
@@ -721,8 +851,8 @@ Please complete this task following your specialized expertise and provide clear
             else:
                 task = f"Continue project: {project['name']}"
             
-            # Run the agent
-            result = self.run_agent(agent_id, task, context)
+            # Run the agent with non-interactive flag
+            result = self.run_agent(agent_id, task, context, non_interactive=non_interactive)
             
             # Update context
             context['completed_agents'].append(agent_id)
@@ -732,12 +862,14 @@ Please complete this task following your specialized expertise and provide clear
                 context['last_handoff'] = result['handoff']
             
             # Check if we should continue
-            if not result['success']:
-                if not Confirm.ask("Task failed. Continue workflow?", default=False):
+            if not result.get('success', True):
+                if non_interactive:
+                    console.print(f"[yellow]Warning: {agent['name']} reported failure, continuing workflow in non-interactive mode[/yellow]")
+                elif not Confirm.ask("Task failed. Continue workflow?", default=False):
                     console.print("[red]Workflow stopped[/red]")
                     break
             
-            if i < len(sequence):
+            if i < len(sequence) and not non_interactive:
                 if not Confirm.ask(f"Continue to next agent?", default=True):
                     console.print("[yellow]Workflow paused[/yellow]")
                     break
@@ -830,7 +962,8 @@ Please complete this task following your specialized expertise and provide clear
                 for item in high_priority[:5]:
                     console.print(f"• {item}")
 
-def main():
+async def async_main():
+    """Async version of main for MCP support"""
     parser = argparse.ArgumentParser(description='CoralCollective Agent Runner')
     parser.add_argument('command', nargs='?', default='interactive',
                        choices=['run', 'workflow', 'list', 'dashboard', 'init', 'interactive', 'mcp-status'],
@@ -861,6 +994,10 @@ def main():
     parser.add_argument('--model', help='Tokenizer/model hint for token estimation (e.g., openai:gpt-4o, anthropic:claude-3.5-sonnet)')
     parser.add_argument('--validate-tokens', action='store_true',
                        help='Print token counts for total and parts/chunks')
+    parser.add_argument('--mcp-enabled', action='store_true', default=True,
+                       help='Enable MCP tool integration (default: True)')
+    parser.add_argument('--no-mcp', dest='mcp_enabled', action='store_false',
+                       help='Disable MCP tool integration')
     
     args = parser.parse_args()
     
@@ -928,19 +1065,30 @@ def main():
         if not args.agent or not args.task:
             console.print("[red]Error: --agent and --task required for run command[/red]")
             sys.exit(1)
-        runner.run_agent(
-            args.agent,
-            args.task,
-            non_interactive=args.non_interactive,
-            provider=args.provider,
-            deliver=args.deliver,
-            max_input_tokens=args.max_input_tokens,
-            streaming=args.streaming,
-            chunk_tokens=args.chunk_tokens,
-            expand=args.expand,
-            model=args.model if hasattr(args, 'model') else None,
-            validate_tokens=args.validate_tokens if hasattr(args, 'validate_tokens') else False,
-        )
+        try:
+            result = await runner.run_agent(
+                args.agent,
+                args.task,
+                non_interactive=args.non_interactive,
+                provider=args.provider,
+                deliver=args.deliver,
+                mcp_enabled=args.mcp_enabled
+            )
+            
+            # Display MCP metrics if available
+            if result.get('mcp_metrics') and result['mcp_metrics'].get('usage_metrics', {}).get('total_calls', 0) > 0:
+                metrics = result['mcp_metrics']['usage_metrics']
+                console.print(f"\n[bold cyan]MCP Usage Summary:[/bold cyan]")
+                console.print(f"• Tools used: {metrics['total_calls']} calls")
+                console.print(f"• Success rate: {metrics.get('success_rate', 0):.1%}")
+                console.print(f"• Servers: {', '.join(metrics.get('servers_used', []))}")
+                
+        except Exception as e:
+            console.print(f"[red]Error running agent: {e}[/red]")
+            sys.exit(1)
+        finally:
+            # Cleanup MCP connections
+            await runner.close_all_bridges()
     
     elif args.command == 'workflow':
         runner.workflow_wizard()
@@ -968,18 +1116,54 @@ def main():
                 console.print("[green]✅ MCP client initialized[/green]")
                 
                 try:
-                    tools = runner.mcp_client.get_available_tools()
-                    console.print(f"\n[bold]Available MCP Tools:[/bold]")
-                    for tool in tools:
-                        console.print(f"  • {tool}")
+                    # Test MCP initialization
+                    await runner.initialize_mcp()
+                    
+                    servers = runner.mcp_client.get_available_servers()
+                    console.print(f"\n[bold]Available MCP Servers:[/bold]")
+                    
+                    for server_name in servers:
+                        server_info = runner.mcp_client.get_server_info(server_name)
+                        if server_info:
+                            status = "🟢 Connected" if server_info.get('connection_stats', {}).get('connected') else "🔴 Disconnected"
+                            console.print(f"  • {server_name}: {status}")
+                            
+                            # List features if available
+                            features = server_info.get('features', [])
+                            if features:
+                                console.print(f"    Features: {', '.join(features)}")
+                    
+                    # Show agent permissions
+                    console.print(f"\n[bold]Agent Permissions Sample:[/bold]")
+                    sample_agents = ['backend_developer', 'frontend_developer', 'devops_deployment']
+                    for agent in sample_agents:
+                        tools = runner.mcp_client.get_tools_for_agent(agent)
+                        if tools:
+                            console.print(f"  • {agent}: {len(tools)} servers accessible")
+                    
                 except Exception as e:
                     console.print(f"[yellow]⚠️  MCP servers not running: {e}[/yellow]")
                     console.print("\nTo start MCP servers:")
-                    console.print("1. cd mcp && npm install")
-                    console.print("2. npm run mcp:start")
+                    console.print("1. cd mcp && ./setup_mcp.sh")
+                    console.print("2. Configure: cp mcp/.env.example mcp/.env")
+                    console.print("3. Edit mcp/.env with your API keys")
+                finally:
+                    await runner.close_all_bridges()
             else:
                 console.print("[yellow]⚠️  MCP client not initialized[/yellow]")
                 console.print("Check mcp/configs/mcp_config.yaml")
+
+def main():
+    """Synchronous main function wrapper"""
+    import asyncio
+    try:
+        asyncio.run(async_main())
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Operation cancelled by user[/yellow]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Unexpected error: {e}[/red]")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

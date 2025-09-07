@@ -1,0 +1,86 @@
+# CoralCollective MANIFEST.in
+# Specifies additional files to include in source distributions
+
+# Include README and core documentation
+include README.md
+include CHANGELOG.md
+include CLAUDE.md
+include INTEGRATION.md
+include INTEGRATION_GUIDE.md
+
+# Include all agent markdown files
+recursive-include coral_collective/agents *.md
+
+# Include configuration files
+recursive-include coral_collective/config *.yaml *.json
+
+# Include templates
+recursive-include coral_collective/templates *.md *.json
+
+# Include MCP configuration files (but not server binaries)
+recursive-include coral_collective/mcp *.yaml *.json *.md
+
+# Include shell scripts for initialization
+include coral-init.sh
+include coral_drop.sh
+include deploy_coral.sh
+include start.sh
+
+# Include memory system files
+recursive-include memory *.py *.md *.txt *.sh
+
+# Include documentation
+recursive-include docs *.md
+
+# Exclude development and build files
+exclude .gitignore
+exclude .gitattributes
+exclude .coral-protected
+exclude DO_NOT_MODIFY.md
+
+# Exclude test directories
+exclude tests
+recursive-exclude tests *
+
+# Exclude example directories from distribution
+exclude examples
+recursive-exclude examples *
+
+# Exclude virtual environments
+exclude venv
+recursive-exclude venv *
+exclude coral_venv
+recursive-exclude coral_venv *
+
+# Exclude build artifacts
+exclude build
+recursive-exclude build *
+exclude dist
+recursive-exclude dist *
+exclude *.egg-info
+recursive-exclude *.egg-info *
+
+# Exclude cache and temporary files
+exclude __pycache__
+recursive-exclude __pycache__ *
+exclude *.pyc
+exclude *.pyo
+exclude *.pyd
+exclude .mypy_cache
+recursive-exclude .mypy_cache *
+
+# Exclude specific development files
+exclude .coral
+recursive-exclude .coral *
+exclude coral_collective.tar.gz
+exclude *.log
+
+# Exclude OS-specific files
+exclude .DS_Store
+exclude Thumbs.db
+
+# Include package data explicitly
+recursive-include coral_collective *.py
+recursive-include coral_collective *.md
+recursive-include coral_collective *.yaml
+recursive-include coral_collective *.json

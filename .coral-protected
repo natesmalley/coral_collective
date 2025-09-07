@@ -1,0 +1,51 @@
+# CORAL COLLECTIVE PROTECTED FILES
+# These files should NEVER be modified by Claude Code
+# They are framework components to be USED, not edited
+
+# Core Framework Files (DO NOT MODIFY)
+agent_runner.py
+agent_prompt_service.py
+project_manager.py
+claude_interface.py
+subagent_registry.py
+
+# Agent Definitions (READ-ONLY)
+agents/**/*.md
+config/agents.yaml
+claude_code_agents.json
+
+# MCP Integration (FRAMEWORK CODE)
+mcp/mcp_client.py
+mcp/configs/mcp_config.yaml
+tools/agent_mcp_bridge.py
+tools/mcp_error_handler.py
+tools/mcp_metrics_collector.py
+
+# Memory System (FRAMEWORK CODE)
+memory/*.py
+setup_memory_system.py
+
+# Deployment Scripts (USE, DON'T MODIFY)
+coral_drop.sh
+deploy_coral.sh
+coral-init.sh
+start.sh
+
+# Integration Files (FRAMEWORK)
+INTEGRATION.md
+INTEGRATION_GUIDE.md
+MCP_INTEGRATION_STRATEGY.md
+MEMORY_SYSTEM_IMPLEMENTATION.md
+
+# Protected Directories
+.coral/
+mcp/servers/
+memory/
+tools/
+
+# INSTRUCTIONS FOR CLAUDE CODE:
+# 1. NEVER modify these files
+# 2. USE them through their interfaces
+# 3. Call agents, don't edit them
+# 4. Import modules, don't change them
+# 5. Run scripts, don't alter them

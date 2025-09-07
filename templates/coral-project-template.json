@@ -1,0 +1,245 @@
+{
+  "name": "coral-project-template",
+  "version": "1.0.0",
+  "description": "Project templates with CoralCollective pre-integrated",
+  "templates": {
+    "full-stack-web": {
+      "name": "Full Stack Web Application",
+      "description": "Complete web app with frontend, backend, and database",
+      "structure": {
+        "src/": {
+          "frontend/": {
+            "components/": {},
+            "pages/": {},
+            "styles/": {},
+            "utils/": {}
+          },
+          "backend/": {
+            "api/": {},
+            "models/": {},
+            "services/": {},
+            "middleware/": {}
+          },
+          "shared/": {
+            "types/": {},
+            "constants/": {}
+          }
+        },
+        "tests/": {
+          "unit/": {},
+          "integration/": {},
+          "e2e/": {}
+        },
+        "docs/": {
+          "api/": {},
+          "architecture/": {},
+          "deployment/": {}
+        },
+        "config/": {},
+        "scripts/": {}
+      },
+      "coral_workflow": "full_stack_development",
+      "initial_agents": [
+        "project_architect",
+        "technical_writer_phase1"
+      ],
+      "technologies": {
+        "frontend": ["React", "Vue", "Angular", "Next.js"],
+        "backend": ["Node.js", "Python", "Go", "Java"],
+        "database": ["PostgreSQL", "MongoDB", "MySQL"],
+        "deployment": ["Docker", "Kubernetes", "AWS", "Vercel"]
+      }
+    },
+    
+    "api-service": {
+      "name": "API Service",
+      "description": "RESTful or GraphQL API service",
+      "structure": {
+        "src/": {
+          "controllers/": {},
+          "models/": {},
+          "routes/": {},
+          "services/": {},
+          "middleware/": {},
+          "utils/": {}
+        },
+        "tests/": {
+          "unit/": {},
+          "integration/": {},
+          "fixtures/": {}
+        },
+        "docs/": {
+          "openapi/": {},
+          "examples/": {}
+        },
+        "config/": {},
+        "migrations/": {}
+      },
+      "coral_workflow": "api_development",
+      "initial_agents": [
+        "project_architect",
+        "api_designer"
+      ],
+      "technologies": {
+        "framework": ["Express", "FastAPI", "Gin", "Spring Boot"],
+        "database": ["PostgreSQL", "MongoDB", "Redis"],
+        "documentation": ["OpenAPI", "GraphQL Schema"],
+        "testing": ["Jest", "Pytest", "Go Test"]
+      }
+    },
+    
+    "mobile-app": {
+      "name": "Mobile Application",
+      "description": "Cross-platform mobile application",
+      "structure": {
+        "src/": {
+          "screens/": {},
+          "components/": {},
+          "navigation/": {},
+          "services/": {},
+          "store/": {},
+          "utils/": {}
+        },
+        "assets/": {
+          "images/": {},
+          "fonts/": {}
+        },
+        "tests/": {},
+        "ios/": {},
+        "android/": {}
+      },
+      "coral_workflow": "mobile_development",
+      "initial_agents": [
+        "project_architect",
+        "mobile_developer"
+      ],
+      "technologies": {
+        "framework": ["React Native", "Flutter", "Ionic"],
+        "state": ["Redux", "MobX", "Context API"],
+        "backend": ["Firebase", "AWS Amplify", "Custom API"]
+      }
+    },
+    
+    "ai-application": {
+      "name": "AI-Powered Application",
+      "description": "Application with AI/ML capabilities",
+      "structure": {
+        "src/": {
+          "models/": {},
+          "training/": {},
+          "inference/": {},
+          "api/": {},
+          "preprocessing/": {},
+          "evaluation/": {}
+        },
+        "data/": {
+          "raw/": {},
+          "processed/": {},
+          "models/": {}
+        },
+        "notebooks/": {},
+        "tests/": {},
+        "docs/": {}
+      },
+      "coral_workflow": "ai_development",
+      "initial_agents": [
+        "project_architect",
+        "ai_ml_specialist"
+      ],
+      "technologies": {
+        "framework": ["TensorFlow", "PyTorch", "Scikit-learn"],
+        "deployment": ["TensorFlow Serving", "TorchServe", "ONNX"],
+        "pipeline": ["Kubeflow", "MLflow", "Airflow"]
+      }
+    },
+    
+    "microservices": {
+      "name": "Microservices Architecture",
+      "description": "Distributed microservices system",
+      "structure": {
+        "services/": {
+          "auth-service/": {},
+          "user-service/": {},
+          "payment-service/": {},
+          "notification-service/": {}
+        },
+        "api-gateway/": {},
+        "shared/": {
+          "proto/": {},
+          "libs/": {}
+        },
+        "infrastructure/": {
+          "docker/": {},
+          "kubernetes/": {},
+          "terraform/": {}
+        },
+        "tests/": {
+          "integration/": {},
+          "load/": {}
+        }
+      },
+      "coral_workflow": "microservices_development",
+      "initial_agents": [
+        "project_architect",
+        "backend_developer",
+        "devops_deployment"
+      ],
+      "technologies": {
+        "communication": ["REST", "gRPC", "Message Queue"],
+        "orchestration": ["Kubernetes", "Docker Swarm"],
+        "monitoring": ["Prometheus", "Grafana", "ELK Stack"]
+      }
+    },
+    
+    "static-site": {
+      "name": "Static Website",
+      "description": "Static site or JAMstack application",
+      "structure": {
+        "src/": {
+          "pages/": {},
+          "components/": {},
+          "layouts/": {},
+          "styles/": {},
+          "content/": {}
+        },
+        "public/": {
+          "images/": {},
+          "fonts/": {}
+        },
+        "tests/": {}
+      },
+      "coral_workflow": "static_site_development",
+      "initial_agents": [
+        "frontend_developer",
+        "ui_designer"
+      ],
+      "technologies": {
+        "generator": ["Next.js", "Gatsby", "Hugo", "11ty"],
+        "cms": ["Contentful", "Strapi", "Markdown"],
+        "deployment": ["Vercel", "Netlify", "GitHub Pages"]
+      }
+    }
+  },
+  
+  "common_files": {
+    "README.md": "# {PROJECT_NAME}\n\nBuilt with CoralCollective 🪸\n\n## Getting Started\n\n```bash\n./coral workflow\n```\n",
+    ".gitignore": "node_modules/\n.env\n.coral/cache/\n.coral/logs/\ndist/\nbuild/\n",
+    "package.json": "{\n  \"name\": \"{PROJECT_NAME}\",\n  \"version\": \"1.0.0\",\n  \"scripts\": {\n    \"coral\": \"./coral\",\n    \"dev\": \"./coral run backend_developer\",\n    \"test\": \"./coral run qa_testing\"\n  }\n}",
+    ".env.example": "# Environment variables\nNODE_ENV=development\nPORT=3000\nDATABASE_URL=\nAPI_KEY=\n"
+  },
+  
+  "coral_config": {
+    "auto_install": true,
+    "default_workflow": "full_stack_development",
+    "enable_memory": true,
+    "enable_mcp": false,
+    "tracking": true
+  },
+  
+  "init_commands": [
+    "npm init -y",
+    "git init",
+    "./coral-init.sh",
+    "./coral run project_architect --task 'Design {PROJECT_NAME}'"
+  ]
+}

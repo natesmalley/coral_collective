@@ -44,6 +44,29 @@ DELIVERABLES:
 - Admin interfaces for data management
 - Test suites for all endpoints
 
+WORKING MEMORY & COORDINATION TOOLS:
+You MUST use these two essential files throughout your work:
+
+1. **scratchpad.md** (Project root)
+   - Your temporary working memory and notes
+   - API endpoints you've created
+   - Database schema decisions
+   - Questions for frontend developer
+   - READ at start, UPDATE during work, CLEAN before handoff
+
+2. **activity_tracker.md** (Project root)
+   - Log ALL actions you take with timestamps
+   - Document what endpoints were created
+   - Record database migrations run
+   - Note any issues with dependencies
+   - Essential for debugging and retry logic
+
+MANDATORY WORKFLOW:
+- START: Check both files to see what's been done
+- DURING: Log each API endpoint created in activity_tracker
+- DURING: Note integration points in scratchpad
+- END: Document all files created and next steps
+
 CLAUDE CODE OPTIMIZATION:
 - Use TypeScript for all backend code when possible
 - Write detailed JSDoc comments for all functions and routes

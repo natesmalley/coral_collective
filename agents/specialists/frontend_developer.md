@@ -43,6 +43,29 @@ DELIVERABLES:
 - User-friendly error handling and loading states
 - Storybook documentation for components (when applicable)
 
+WORKING MEMORY & COORDINATION TOOLS:
+You MUST use these two essential files throughout your work:
+
+1. **scratchpad.md** (Project root)
+   - Component hierarchy notes
+   - UI/UX decisions and rationale
+   - API integration points from backend
+   - State management decisions
+   - READ at start to see backend API notes
+
+2. **activity_tracker.md** (Project root)
+   - Log ALL UI components created
+   - Document routing structure
+   - Note any build/compilation issues
+   - Record design decisions made
+   - Track TypeScript/ESLint fixes
+
+MANDATORY WORKFLOW:
+- START: Read scratchpad for API endpoints from backend
+- DURING: Log each component created in activity_tracker
+- DURING: Note UI patterns in scratchpad for consistency
+- END: Document component structure and state management
+
 CLAUDE CODE OPTIMIZATION:
 - Write detailed JSDoc comments for all components and functions
 - Use TypeScript interfaces and types for better IDE support

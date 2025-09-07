@@ -1,0 +1,38 @@
+# CoralCollective Framework Protection
+# Mark framework files as binary to prevent modifications
+
+# Core framework files - DO NOT MODIFY
+agent_runner.py binary
+agent_prompt_service.py binary
+project_manager.py binary
+claude_interface.py binary
+subagent_registry.py binary
+
+# Agent definitions - READ ONLY
+agents/**/*.md binary
+config/agents.yaml binary
+
+# MCP System - FRAMEWORK CODE
+mcp/mcp_client.py binary
+mcp/configs/*.yaml binary
+tools/*.py binary
+
+# Memory System - FRAMEWORK CODE  
+memory/*.py binary
+
+# Deployment scripts - EXECUTE ONLY
+*.sh binary
+
+# Mark as generated/vendored to exclude from language stats
+agents/** linguist-vendored
+mcp/** linguist-vendored
+memory/** linguist-vendored
+tools/** linguist-vendored
+
+# Documentation files
+*.md linguist-documentation
+
+# Mark framework as generated to prevent GitHub editing
+agent_runner.py linguist-generated=true
+agent_prompt_service.py linguist-generated=true
+project_manager.py linguist-generated=true

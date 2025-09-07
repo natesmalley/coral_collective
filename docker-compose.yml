@@ -1,0 +1,235 @@
+version: '3.8'
+
+services:
+  coral-collective:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: coral-collective-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for development
+      - .:/app
+      # Mount virtual environment to persist packages
+      - coral_venv:/opt/venv
+      # Mount data directories
+      - coral_data:/app/data
+      - coral_logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - CORAL_ENV=development
+      - CORAL_DEBUG=true
+      - POSTGRES_URL=postgresql://coral:coral@postgres:5432/coral_db
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8001
+    depends_on:
+      - postgres
+      - chroma
+    networks:
+      - coral-network
+    command: ["tail", "-f", "/dev/null"]  # Keep container running for development
+
+  coral-production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: coral-collective-prod
+    ports:
+      - "8080:8000"
+    volumes:
+      - coral_prod_data:/app/data
+      - coral_prod_logs:/app/logs
+    environment:
+      - CORAL_ENV=production
+      - CORAL_DEBUG=false
+      - POSTGRES_URL=postgresql://coral:coral@postgres:5432/coral_db
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8001
+    depends_on:
+      - postgres
+      - chroma
+    networks:
+      - coral-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  coral-memory:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: memory
+    container_name: coral-collective-memory
+    ports:
+      - "8090:8000"
+    volumes:
+      - coral_memory_data:/app/data
+      - coral_memory_logs:/app/logs
+    environment:
+      - CORAL_ENV=production
+      - CORAL_MEMORY_ENABLED=true
+      - POSTGRES_URL=postgresql://coral:coral@postgres:5432/coral_db
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8001
+      - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+    depends_on:
+      - postgres
+      - chroma
+    networks:
+      - coral-network
+    restart: unless-stopped
+    profiles:
+      - memory
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: coral-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=coral
+      - POSTGRES_PASSWORD=coral
+      - POSTGRES_DB=coral_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - coral-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coral -d coral_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: coral-chroma
+    ports:
+      - "8001:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - coral-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: coral-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - coral-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # MCP Server for GitHub integration
+  mcp-github:
+    image: node:18-alpine
+    container_name: coral-mcp-github
+    working_dir: /app
+    volumes:
+      - ./mcp/servers:/app
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    networks:
+      - coral-network
+    command: ["node", "github_server.js"]
+    restart: unless-stopped
+    profiles:
+      - mcp
+
+  # MCP Server for filesystem operations
+  mcp-filesystem:
+    image: python:3.11-alpine
+    container_name: coral-mcp-filesystem
+    working_dir: /app
+    volumes:
+      - ./mcp/servers:/app
+      - coral_data:/app/data
+    networks:
+      - coral-network
+    command: ["python", "filesystem_server.py"]
+    restart: unless-stopped
+    profiles:
+      - mcp
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: coral-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - coral-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Monitoring with Grafana (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: coral-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=coral
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - coral-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  coral_venv:
+    driver: local
+  coral_data:
+    driver: local
+  coral_logs:
+    driver: local
+  coral_prod_data:
+    driver: local
+  coral_prod_logs:
+    driver: local
+  coral_memory_data:
+    driver: local
+  coral_memory_logs:
+    driver: local
+  postgres_data:
+    driver: local
+  chroma_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  coral-network:
+    driver: bridge

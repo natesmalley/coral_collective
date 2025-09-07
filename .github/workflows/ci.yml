@@ -1,0 +1,239 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        # Activate virtual environment based on OS
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          echo "VENV_ACTIVATE=venv\\Scripts\\activate" >> $GITHUB_ENV
+          echo "VENV_PYTHON=venv\\Scripts\\python" >> $GITHUB_ENV
+        else
+          echo "VENV_ACTIVATE=venv/bin/activate" >> $GITHUB_ENV
+          echo "VENV_PYTHON=venv/bin/python" >> $GITHUB_ENV
+        fi
+      shell: bash
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        source ${{ env.VENV_ACTIVATE }}
+        pip install --upgrade pip setuptools wheel
+        pip install -e .[dev]
+        pip install pytest-cov coverage
+    
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        & ${{ env.VENV_ACTIVATE }}
+        pip install --upgrade pip setuptools wheel
+        pip install -e .[dev]
+        pip install pytest-cov coverage
+    
+    - name: Lint with ruff
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          & ${{ env.VENV_ACTIVATE }}
+        else
+          source ${{ env.VENV_ACTIVATE }}
+        fi
+        ruff check --output-format=github .
+      shell: bash
+      continue-on-error: true
+    
+    - name: Format check with black
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          & ${{ env.VENV_ACTIVATE }}
+        else
+          source ${{ env.VENV_ACTIVATE }}
+        fi
+        black --check --diff .
+      shell: bash
+      continue-on-error: true
+    
+    - name: Type check with mypy
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          & ${{ env.VENV_ACTIVATE }}
+        else
+          source ${{ env.VENV_ACTIVATE }}
+        fi
+        mypy --install-types --non-interactive coral_collective/ || true
+      shell: bash
+      continue-on-error: true
+    
+    - name: Test with pytest
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          & ${{ env.VENV_ACTIVATE }}
+        else
+          source ${{ env.VENV_ACTIVATE }}
+        fi
+        pytest tests/ -v --cov=coral_collective --cov-report=xml --cov-report=term-missing
+      shell: bash
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+    
+    - name: Install security tools
+      run: |
+        source venv/bin/activate
+        pip install bandit safety
+    
+    - name: Run bandit security linter
+      run: |
+        source venv/bin/activate
+        bandit -r coral_collective/ -f json -o bandit-report.json || true
+    
+    - name: Check for known security vulnerabilities
+      run: |
+        source venv/bin/activate
+        safety check --json --output safety-report.json || true
+
+  build-package:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Create virtual environment and build
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip build twine
+        python -m build
+    
+    - name: Check package
+      run: |
+        source venv/bin/activate
+        twine check dist/*
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: [test, build-package]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: coral_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+    
+    - name: Install package with all features
+      run: |
+        source venv/bin/activate
+        pip install -e .[all]
+    
+    - name: Test MCP integration
+      env:
+        POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/coral_test
+      run: |
+        source venv/bin/activate
+        python -c "
+        try:
+            from coral_collective.tools.mcp_error_handler import MCPErrorHandler
+            from coral_collective.tools.mcp_metrics_collector import MCPMetricsCollector
+            print('MCP integration test passed')
+        except ImportError as e:
+            print(f'MCP integration test failed: {e}')
+            exit(1)
+        "
+    
+    - name: Test memory system
+      run: |
+        source venv/bin/activate
+        python -c "
+        try:
+            from coral_collective.memory.memory_system import MemorySystem
+            print('Memory system test passed')
+        except ImportError as e:
+            print(f'Memory system test failed: {e}')
+            exit(1)
+        "
+    
+    - name: Test CLI functionality
+      run: |
+        source venv/bin/activate
+        python -m coral_collective.cli.main --help
+        python -m coral_collective.utils.check

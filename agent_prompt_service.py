@@ -152,14 +152,26 @@ def build_sections(payload: PromptPayload, expand: bool = True) -> List[Dict[str
             'required': False,
         })
 
-    # MCP tools optional
+    # MCP tools optional - handle both old dict format and new documentation format
     if expand and payload.mcp_tools:
-        sections.append({
-            'key': 'mcp_tools',
-            'title': 'MCP TOOLS',
-            'text': json.dumps(payload.mcp_tools, indent=2),
-            'required': False,
-        })
+        if isinstance(payload.mcp_tools, dict) and "documentation" in payload.mcp_tools:
+            # New bridge-generated documentation format
+            mcp_text = payload.mcp_tools["documentation"]
+            if mcp_text:
+                sections.append({
+                    'key': 'mcp_tools',
+                    'title': 'MCP TOOLS AVAILABLE',
+                    'text': mcp_text,
+                    'required': False,
+                })
+        else:
+            # Legacy format - raw JSON
+            sections.append({
+                'key': 'mcp_tools',
+                'title': 'MCP TOOLS',
+                'text': json.dumps(payload.mcp_tools, indent=2),
+                'required': False,
+            })
 
     sections.append({
         'key': 'task',
@@ -267,3 +279,103 @@ def chunk_text(text: str, estimator: TokenEstimator, chunk_tokens: int = 2000) -
     if buf:
         chunks.append(''.join(buf).strip())
     return chunks
+
+
+def compose(
+    agent_id: str,
+    task: str,
+    runner: Optional[AgentRunner] = None,
+    project_context: Optional[Dict[str, Any]] = None,
+    include_mcp_tools: bool = True,
+) -> PromptPayload:
+    """Compose a provider-agnostic prompt payload for a given agent and task."""
+    # Lazy init to avoid side effects in import
+    if runner is None and AgentRunner is not None:
+        runner = AgentRunner()
+    if runner is None:
+        raise RuntimeError("AgentRunner unavailable; cannot compose prompt")
+    # Use the existing AgentRunner logic to get the base agent prompt
+    base_prompt = runner.get_agent_prompt(agent_id)
+    # Agent metadata from config
+    agent_cfg = runner.agents_config.get("agents", {}).get(agent_id, {})
+    agent_name = agent_cfg.get("name", agent_id)
+    # MCP tools (optional) - legacy fallback for sync usage
+    mcp_tools: Optional[Dict[str, Any]] = None
+    if include_mcp_tools and getattr(runner, "mcp_client", None):
+        try:
+            tools = runner.mcp_client.get_tools_for_agent(agent_id)  # type: ignore[attr-defined]
+            if tools:
+                mcp_tools = tools
+        except Exception:
+            # Tools unavailable; keep None
+            pass
+    return PromptPayload(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        base_prompt=base_prompt,
+        task=task,
+        project_context=project_context,
+        mcp_tools=mcp_tools,
+    )
+
+
+async def compose_async(
+    agent_id: str,
+    task: str,
+    runner: Optional[AgentRunner] = None,
+    project_context: Optional[Dict[str, Any]] = None,
+    include_mcp_tools: bool = True,
+    mcp_bridge = None
+) -> PromptPayload:
+    """
+    Async version of compose that uses the new MCP bridge system.
+    Provides enhanced MCP tool documentation with examples and permissions.
+    """
+    # Lazy init to avoid side effects in import
+    if runner is None and AgentRunner is not None:
+        runner = AgentRunner()
+    if runner is None:
+        raise RuntimeError("AgentRunner unavailable; cannot compose prompt")
+    
+    # Use the existing AgentRunner logic to get the base agent prompt
+    base_prompt = runner.get_agent_prompt(agent_id)
+    
+    # Agent metadata from config
+    agent_cfg = runner.agents_config.get("agents", {}).get(agent_id, {})
+    agent_name = agent_cfg.get("name", agent_id)
+    
+    # Enhanced MCP tools with bridge system
+    mcp_tools_text: Optional[str] = None
+    if include_mcp_tools and mcp_bridge:
+        try:
+            # Import bridge components
+            from tools.agent_mcp_bridge import MCPToolsPromptGenerator
+            
+            # Generate comprehensive MCP tools documentation
+            prompt_generator = MCPToolsPromptGenerator(mcp_bridge)
+            mcp_tools_text = await prompt_generator.generate_tools_section()
+            
+            if not mcp_tools_text.strip():
+                mcp_tools_text = None
+                
+        except Exception as e:
+            print(f"Warning: Failed to generate MCP tools documentation: {e}")
+            # Fallback to simple tools list
+            try:
+                available_tools = await mcp_bridge.get_available_tools()
+                if available_tools:
+                    mcp_tools_text = f"Available MCP Tools: {', '.join(available_tools.keys())}"
+            except:
+                pass
+    
+    # Convert text to dict format for compatibility (will be converted back in build_sections)
+    mcp_tools_dict = {"documentation": mcp_tools_text} if mcp_tools_text else None
+    
+    return PromptPayload(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        base_prompt=base_prompt,
+        task=task,
+        project_context=project_context,
+        mcp_tools=mcp_tools_dict,
+    )

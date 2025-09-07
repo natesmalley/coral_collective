@@ -3,6 +3,15 @@
 ## Overview
 The Agent Orchestrator manages the complete AI development team workflow, ensuring proper sequencing and handoffs between specialist agents.
 
+## State Management & Coordination
+The orchestrator now includes automatic state tracking to prevent work duplication and enable better context sharing:
+
+- **Project State File**: `.coral/project_state.yaml` tracks all agent activities
+- **Artifact Tracking**: All files created by agents are recorded
+- **Context Sharing**: Agents can access outputs from previous agents
+- **Handoff Protocol**: Structured data passing between agents
+- **Non-Interactive Mode**: Full automation support for CI/CD environments
+
 ## Documentation-First Workflow
 
 ```
@@ -58,6 +67,27 @@ The Agent Orchestrator manages the complete AI development team workflow, ensuri
 │     └─> Creates user documentation   │
 │     └─> Finalizes all docs           │
 └──────────────────────────────────────┘
+```
+
+## Agent Handoff Protocol
+
+Each agent provides structured handoff data to the next agent:
+
+```yaml
+handoff:
+  from_agent: backend_developer
+  to_agent: frontend_developer
+  artifacts:
+    - type: api_endpoints
+      path: /backend/api/
+    - type: documentation
+      path: /docs/api/
+  context:
+    api_base_url: http://localhost:3000
+    auth_method: JWT
+    database: PostgreSQL
+  next_task: "Implement frontend UI components that consume the API endpoints"
+  notes: "API is fully tested and documented. Auth endpoints ready."
 ```
 
 ## How to Use the Agent Team
