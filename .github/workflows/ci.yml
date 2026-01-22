@@ -203,7 +203,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-          pip install pytest pytest-asyncio
+          pip install pytest pytest-asyncio pytest-cov
       
       - name: Run integration tests
         run: |
@@ -212,10 +212,11 @@ jobs:
       
       - name: Test CLI commands
         run: |
-          # Test basic CLI functionality
+          # Test basic CLI functionality (help commands only - no interactive prompts)
           python -m coral_collective.agent_runner --help
-          python -m coral_collective.agent_runner list
           python -m coral_collective.project_manager --help
+          # Test that modules can be imported
+          python -c "import coral_collective; print('Import successful')"
 
   publish-test-results:
     runs-on: ubuntu-latest
