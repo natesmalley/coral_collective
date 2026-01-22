@@ -39,13 +39,13 @@ class TestAgentRunnerInitialization:
         with open(config_file, 'w') as f:
             json.dump(mock_agents_config, f)
             
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = temp_project_dir
             mock_path.__file__ = str(temp_project_dir / "agent_runner.py")
             
-            with patch('agent_runner.FeedbackCollector'), \
-                 patch('agent_runner.ProjectStateManager'), \
-                 patch('agent_runner.MCPClient'):
+            with patch('coral_collective.agent_runner.FeedbackCollector'), \
+                 patch('coral_collective.agent_runner.ProjectStateManager'), \
+                 patch('coral_collective.agent_runner.MCPClient'):
                 
                 runner = AgentRunner()
                 
@@ -62,12 +62,12 @@ class TestAgentRunnerInitialization:
         standalone_config = temp_project_dir / "standalone_config.json"
         standalone_config.write_text('{"mode": "standalone"}')
         
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = temp_project_dir
             mock_path.__file__ = str(temp_project_dir / "agent_runner.py")
             
-            with patch('agent_runner.FeedbackCollector'), \
-                 patch('agent_runner.ProjectStateManager'):
+            with patch('coral_collective.agent_runner.FeedbackCollector'), \
+                 patch('coral_collective.agent_runner.ProjectStateManager'):
                 
                 runner = AgentRunner()
                 
@@ -76,14 +76,14 @@ class TestAgentRunnerInitialization:
     def test_detect_standalone_mode_variations(self, temp_project_dir):
         """Test different methods of detecting standalone mode"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             # Test 1: standalone_config.json exists
             config_file = temp_project_dir / "standalone_config.json"
             config_file.write_text('{}')
             
-            with patch('agent_runner.Path') as mock_path:
+            with patch('coral_collective.agent_runner.Path') as mock_path:
                 mock_path.return_value.parent = temp_project_dir
                 runner = AgentRunner()
                 assert runner.detect_standalone_mode()
@@ -94,7 +94,7 @@ class TestAgentRunnerInitialization:
             coral_dir = temp_project_dir / ".coral"
             coral_dir.mkdir()
             
-            with patch('agent_runner.Path') as mock_path:
+            with patch('coral_collective.agent_runner.Path') as mock_path:
                 mock_path.return_value.name = ".coral"
                 runner = AgentRunner()
                 assert runner.detect_standalone_mode()
@@ -103,7 +103,7 @@ class TestAgentRunnerInitialization:
             coralrc = temp_project_dir / ".coralrc"
             coralrc.write_text('')
             
-            with patch('agent_runner.Path') as mock_path:
+            with patch('coral_collective.agent_runner.Path') as mock_path:
                 mock_path.return_value.parent.parent = temp_project_dir
                 runner = AgentRunner()
                 assert runner.detect_standalone_mode()
@@ -119,9 +119,9 @@ class TestAgentConfiguration:
         with open(config_file, 'w') as f:
             json.dump(mock_agents_config, f)
             
-        with patch('agent_runner.Path') as mock_path, \
-             patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.Path') as mock_path, \
+             patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             mock_path.return_value.parent = temp_project_dir
             runner = AgentRunner()
@@ -133,10 +133,10 @@ class TestAgentConfiguration:
     def test_load_agents_config_file_not_found(self, temp_project_dir):
         """Test handling when config file doesn't exist"""
         
-        with patch('agent_runner.Path') as mock_path, \
-             patch('agent_runner.console') as mock_console, \
-             patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.Path') as mock_path, \
+             patch('coral_collective.agent_runner.console') as mock_console, \
+             patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             mock_path.return_value.parent = temp_project_dir
             
@@ -153,10 +153,10 @@ class TestAgentConfiguration:
     def test_create_default_config(self, temp_project_dir):
         """Test creation of default configuration"""
         
-        with patch('agent_runner.Path') as mock_path, \
-             patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
-             patch('agent_runner.console'):
+        with patch('coral_collective.agent_runner.Path') as mock_path, \
+             patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
+             patch('coral_collective.agent_runner.console'):
             
             mock_path.return_value.parent = temp_project_dir
             runner = AgentRunner()
@@ -176,8 +176,8 @@ class TestAgentConfiguration:
     def test_get_project_directories_normal_mode(self, temp_project_dir):
         """Test getting project directories in normal mode"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -193,8 +193,8 @@ class TestAgentConfiguration:
     def test_get_project_directories_standalone_mode(self, temp_project_dir):
         """Test getting project directories in standalone mode"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -243,8 +243,8 @@ Use this agent for testing purposes.
         prompt_file = prompt_dir / 'project_architect.md'
         prompt_file.write_text(self.sample_prompt)
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -274,8 +274,8 @@ Use this agent for testing purposes.
         prompt_file = prompt_dir / 'test_agent.md'
         prompt_file.write_text(self.sample_prompt)
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -297,8 +297,8 @@ Use this agent for testing purposes.
             }
         }
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -340,8 +340,8 @@ This should not be included.
         prompt_file = temp_project_dir / 'test_extraction.md'
         prompt_file.write_text(full_content)
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -367,8 +367,8 @@ class TestAgentExecution:
         prompt_file = prompt_dir / 'project_architect.md'
         prompt_file.write_text("You are a project architect agent.")
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager') as mock_state_manager:
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager') as mock_state_manager:
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -419,10 +419,10 @@ class TestAgentExecution:
             return_value="## Available MCP Tools\n- filesystem_read\n- github_create_repo"
         )
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
-             patch('agent_runner.AgentMCPBridge', return_value=mock_bridge), \
-             patch('agent_runner.MCPToolsPromptGenerator', return_value=mock_prompt_generator):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
+             patch('coral_collective.agent_runner.AgentMCPBridge', return_value=mock_bridge), \
+             patch('coral_collective.agent_runner.MCPToolsPromptGenerator', return_value=mock_prompt_generator):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -448,9 +448,9 @@ class TestAgentExecution:
     async def test_get_agent_bridge_creation(self, temp_project_dir, mock_mcp_client):
         """Test MCP bridge creation for agents"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
-             patch('agent_runner.AgentMCPBridge') as mock_bridge_class:
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
+             patch('coral_collective.agent_runner.AgentMCPBridge') as mock_bridge_class:
             
             mock_bridge = Mock()
             mock_bridge_class.return_value = mock_bridge
@@ -469,8 +469,8 @@ class TestAgentExecution:
     async def test_close_agent_bridge(self, temp_project_dir, mock_mcp_client):
         """Test closing MCP bridge for agents"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             mock_bridge = Mock()
             mock_bridge.close = AsyncMock()
@@ -486,8 +486,8 @@ class TestAgentExecution:
     async def test_close_all_bridges(self, temp_project_dir, mock_mcp_client):
         """Test closing all MCP bridges"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             # Create mock bridges
             mock_bridge1 = Mock()
@@ -517,8 +517,8 @@ class TestWorkflowManagement:
     def test_start_project(self, temp_project_dir):
         """Test starting a new project"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             runner.base_path = temp_project_dir
@@ -556,8 +556,8 @@ class TestWorkflowManagement:
             prompt_file = agent_dir / f'{agent_id}.md'
             prompt_file.write_text(f"You are a {agent_id} agent.")
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
              patch.object(AgentRunner, 'run_agent', new_callable=AsyncMock) as mock_run_agent:
             
             # Mock successful agent execution
@@ -588,9 +588,9 @@ class TestWorkflowManagement:
     def test_session_summary_calculation(self, temp_project_dir, mock_agents_config):
         """Test session summary calculation"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
-             patch('agent_runner.console') as mock_console:
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
+             patch('coral_collective.agent_runner.console') as mock_console:
             
             runner = AgentRunner()
             runner.agents_config = mock_agents_config
@@ -642,7 +642,7 @@ class TestCLIIntegration:
         ]
         
         with patch('sys.argv', test_args), \
-             patch('agent_runner.AgentRunner') as mock_runner_class:
+             patch('coral_collective.agent_runner.AgentRunner') as mock_runner_class:
             
             mock_runner = Mock()
             mock_runner.run_agent = AsyncMock(return_value={
@@ -664,7 +664,7 @@ class TestCLIIntegration:
         test_args = ['agent_runner.py', 'list']
         
         with patch('sys.argv', test_args), \
-             patch('agent_runner.AgentRunner') as mock_runner_class:
+             patch('coral_collective.agent_runner.AgentRunner') as mock_runner_class:
             
             mock_runner = Mock()
             mock_runner_class.return_value = mock_runner
@@ -680,8 +680,8 @@ class TestCLIIntegration:
         test_args = ['agent_runner.py', 'init']
         
         with patch('sys.argv', test_args), \
-             patch('agent_runner.console') as mock_console, \
-             patch('agent_runner.Path'):
+             patch('coral_collective.agent_runner.console') as mock_console, \
+             patch('coral_collective.agent_runner.Path'):
             
             await async_main()
             
@@ -695,9 +695,9 @@ class TestErrorHandling:
     def test_invalid_agent_id(self, temp_project_dir, mock_agents_config):
         """Test handling invalid agent IDs"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
-             patch('agent_runner.console') as mock_console:
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
+             patch('coral_collective.agent_runner.console') as mock_console:
             
             runner = AgentRunner()
             runner.agents_config = mock_agents_config
@@ -714,9 +714,9 @@ class TestErrorHandling:
         mock_mcp_client = Mock()
         mock_mcp_client.initialize = AsyncMock(side_effect=Exception("MCP init failed"))
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
-             patch('agent_runner.console') as mock_console:
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
+             patch('coral_collective.agent_runner.console') as mock_console:
             
             runner = AgentRunner()
             runner.mcp_client = mock_mcp_client
@@ -734,10 +734,10 @@ class TestErrorHandling:
         mock_mcp_client = Mock()
         mock_mcp_client.initialized = True
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'), \
-             patch('agent_runner.AgentMCPBridge', side_effect=Exception("Bridge creation failed")), \
-             patch('agent_runner.console') as mock_console:
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'), \
+             patch('coral_collective.agent_runner.AgentMCPBridge', side_effect=Exception("Bridge creation failed")), \
+             patch('coral_collective.agent_runner.console') as mock_console:
             
             runner = AgentRunner()
             runner.mcp_client = mock_mcp_client
@@ -755,8 +755,8 @@ class TestPerformanceAndMetrics:
     def test_session_data_tracking(self, temp_project_dir):
         """Test session data tracking and storage"""
         
-        with patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             
@@ -784,8 +784,8 @@ class TestPerformanceAndMetrics:
         
         mock_feedback_collector = Mock()
         
-        with patch('agent_runner.FeedbackCollector', return_value=mock_feedback_collector), \
-             patch('agent_runner.ProjectStateManager'):
+        with patch('coral_collective.agent_runner.FeedbackCollector', return_value=mock_feedback_collector), \
+             patch('coral_collective.agent_runner.ProjectStateManager'):
             
             runner = AgentRunner()
             
@@ -828,9 +828,9 @@ class TestFullWorkflowIntegration:
         with open(config_file, 'w') as f:
             json.dump(mock_agents_config, f)
             
-        with patch('agent_runner.Path') as mock_path, \
-             patch('agent_runner.FeedbackCollector'), \
-             patch('agent_runner.ProjectStateManager') as mock_state_manager:
+        with patch('coral_collective.agent_runner.Path') as mock_path, \
+             patch('coral_collective.agent_runner.FeedbackCollector'), \
+             patch('coral_collective.agent_runner.ProjectStateManager') as mock_state_manager:
             
             mock_path.return_value.parent = temp_project_dir
             mock_path.__file__ = str(temp_project_dir / "agent_runner.py")
