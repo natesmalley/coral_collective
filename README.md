@@ -118,6 +118,7 @@ coral-collective/
 │   ├── project_state.py        # Project state management
 │   └── feedback_collector.py   # Feedback system
 ├── docs/                        # Documentation
+│   └── IDE_INTEGRATION.md      # VS Code & Claude integration
 ├── examples/                    # Usage examples
 └── tests/                       # Test suite
 ```
@@ -248,11 +249,23 @@ pytest tests/
 black .
 ```
 
+## 🔧 IDE Integration
+
+CoralCollective works seamlessly with popular IDEs and Claude's `/agent` command:
+
+- **VS Code**: Full integration with tasks, debugging, and terminal
+- **GitHub Desktop**: Visual git management for agent-generated code
+- **Claude /agent**: Direct agent invocation in Claude conversations
+
+See [IDE Integration Guide](docs/IDE_INTEGRATION.md) for detailed setup instructions.
+
 ## 📚 Documentation
 
 - [User Guide](docs/USER_GUIDE.md) - Complete usage instructions
+- [IDE Integration](docs/IDE_INTEGRATION.md) - VS Code, GitHub Desktop, and Claude setup
 - [API Reference](docs/API_REFERENCE.md) - Detailed API documentation
 - [Architecture](docs/ARCHITECTURE.md) - System design and patterns
+- [Integration Guide](INTEGRATION.md) - Various integration methods
 - [MCP Integration](docs/MCP_INTEGRATION_STRATEGY.md) - MCP setup guide
 - [FAQ](docs/FAQ.md) - Common questions and solutions
 
