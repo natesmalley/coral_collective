@@ -229,6 +229,7 @@ markers = [
     "agent: marks tests for agent functionality",
     "kubernetes: marks tests for Kubernetes functionality",
     "monitoring: marks tests for monitoring functionality",
+    "core: marks tests for core functionality",
 ]
 filterwarnings = [
     "error",
