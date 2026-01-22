@@ -28,7 +28,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from coral_collective.agent_runner import AgentRunner
 from coral_collective.project_manager import ProjectManager
-from memory.coral_memory_integration import CoralMemoryIntegration
+# Memory module is not available - commenting out
+# from memory.coral_memory_integration import CoralMemoryIntegration
 from coral_collective.tools.project_state import ProjectStateManager
 
 
@@ -108,31 +109,30 @@ class TestFullProjectLifecycle:
             mock_runner = self._create_mock_agent_runner()
             mock_runner_class.return_value = mock_runner
             
-            # Mock memory integration
-            with patch('memory.coral_memory_integration.CoralMemoryIntegration') as mock_memory:
-                mock_memory_instance = self._create_mock_memory_integration()
-                mock_memory.return_value = mock_memory_instance
-                
-                # Phase 1: Planning and Architecture
-                await self._execute_planning_phase(mock_runner)
-                
-                # Phase 2: Development
-                await self._execute_development_phase(mock_runner)
-                
-                # Phase 3: Quality Assurance
-                await self._execute_qa_phase(mock_runner)
-                
-                # Phase 4: Deployment
-                await self._execute_deployment_phase(mock_runner)
-                
-                # Phase 5: Documentation (Final)
-                await self._execute_documentation_phase(mock_runner)
-                
-                # Verify final state
-                final_state = self._load_project_state()
-                assert final_state["project"]["status"] == "completed"
-                assert final_state["metrics"]["successful_completions"] >= 8
-                assert len(final_state["artifacts"]) >= 10
+            # Mock memory integration (memory module not available)
+            # Skipping memory integration mocking
+            mock_memory_instance = self._create_mock_memory_integration()
+            
+            # Phase 1: Planning and Architecture
+            await self._execute_planning_phase(mock_runner)
+            
+            # Phase 2: Development
+            await self._execute_development_phase(mock_runner)
+            
+            # Phase 3: Quality Assurance
+            await self._execute_qa_phase(mock_runner)
+            
+            # Phase 4: Deployment
+            await self._execute_deployment_phase(mock_runner)
+            
+            # Phase 5: Documentation (Final)
+            await self._execute_documentation_phase(mock_runner)
+            
+            # Verify final state
+            final_state = self._load_project_state()
+            assert final_state["project"]["status"] == "completed"
+            assert final_state["metrics"]["successful_completions"] >= 8
+            assert len(final_state["artifacts"]) >= 10
     
     def _create_mock_agent_runner(self):
         """Create comprehensive mock agent runner"""
