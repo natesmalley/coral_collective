@@ -4,7 +4,7 @@ Version utility functions for CoralCollective
 Provides version parsing, comparison, and formatting utilities.
 """
 
-from typing import Dict, Tuple, Optional
+from typing import Any, Dict, Optional, Tuple
 import re
 
 
@@ -36,7 +36,7 @@ def parse_version(version_string: str) -> Tuple[int, int, int]:
     )
 
 
-def get_version_info() -> Dict[str, any]:
+def get_version_info() -> Dict[str, Any]:
     """
     Get detailed version information about CoralCollective.
     
