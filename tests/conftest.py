@@ -261,14 +261,7 @@ def mock_placeholder():
         "working_memory": {},
         "relevant_memories": [],
         "session_context": {}
-    })
-    memory_system.record_agent_handoff = AsyncMock()
-    memory_system.get_memory_stats = Mock(return_value={
-        "short_term_memories": 0,
-        "long_term_memories": 0,
-        "working_memory_keys": 0
-    })
-    return memory_system
+    }
 
 
 # ============================
