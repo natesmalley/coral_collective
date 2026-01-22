@@ -25,7 +25,7 @@ from typing import Dict, List, Optional
 import sys
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from agent_runner import AgentRunner, async_main
+from coral_collective.agent_runner import AgentRunner, async_main
 
 
 class TestAgentRunnerInitialization:

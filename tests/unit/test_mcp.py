@@ -29,9 +29,9 @@ sys.modules['mcp.types'] = MagicMock()
 
 try:
     from mcp.mcp_client import MCPClient
-    from tools.agent_mcp_bridge import AgentMCPBridge, MCPToolsPromptGenerator
-    from tools.mcp_error_handler import MCPErrorHandler, MCPError
-    from tools.mcp_metrics_collector import MCPMetricsCollector
+    from coral_collective.tools.agent_mcp_bridge import AgentMCPBridge, MCPToolsPromptGenerator
+    from coral_collective.tools.mcp_error_handler import MCPErrorHandler, MCPError
+    from coral_collective.tools.mcp_metrics_collector import MCPMetricsCollector
     MCP_AVAILABLE = True
 except ImportError:
     MCP_AVAILABLE = False

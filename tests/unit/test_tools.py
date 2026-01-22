@@ -20,8 +20,8 @@ from typing import Dict, List, Any
 import sys
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from tools.feedback_collector import FeedbackCollector
-from tools.project_state import ProjectStateManager
+from coral_collective.tools.feedback_collector import FeedbackCollector
+from coral_collective.tools.project_state import ProjectStateManager
 
 
 class TestFeedbackCollector:

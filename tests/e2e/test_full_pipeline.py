@@ -26,10 +26,10 @@ from typing import Dict, List, Any
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agent_runner import AgentRunner
-from project_manager import ProjectManager
+from coral_collective.agent_runner import AgentRunner
+from coral_collective.project_manager import ProjectManager
 from memory.coral_memory_integration import CoralMemoryIntegration
-from tools.project_state import ProjectStateManager
+from coral_collective.tools.project_state import ProjectStateManager
 
 
 @pytest.mark.e2e

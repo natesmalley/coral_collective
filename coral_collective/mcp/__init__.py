@@ -16,4 +16,5 @@ except ImportError:
                 "MCP support not installed. Install with: pip install coral-collective[mcp]"
             )
 
-__all__ = ['MCPClient']
+
+__all__ = ["MCPClient"]

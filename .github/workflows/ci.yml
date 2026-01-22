@@ -102,13 +102,20 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov pytest-asyncio pytest-mock
       
-      - name: Run tests with coverage
+      - name: Run tests with coverage (Unix)
+        if: runner.os != 'Windows'
         run: |
           pytest tests/ \
             --cov=coral_collective \
             --cov-report=xml \
             --cov-report=term-missing \
             --junitxml=junit/test-results-${{ matrix.os }}-${{ matrix.python-version }}.xml
+        continue-on-error: true
+      
+      - name: Run tests with coverage (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          pytest tests/ --cov=coral_collective --cov-report=xml --cov-report=term-missing --junitxml=junit/test-results-${{ matrix.os }}-${{ matrix.python-version }}.xml
         continue-on-error: true
       
       - name: Upload coverage reports

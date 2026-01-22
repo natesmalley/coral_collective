@@ -22,8 +22,8 @@ from datetime import datetime
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agent_runner import AgentRunner
-from agent_prompt_service import AgentPromptService
+from coral_collective.agent_runner import AgentRunner
+from coral_collective.agent_prompt_service import AgentPromptService
 from subagent_registry import SubagentRegistry
 from tests.fixtures.test_data import MockProjectSetup
 

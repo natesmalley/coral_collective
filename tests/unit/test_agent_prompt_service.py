@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from agent_prompt_service import (
+from coral_collective.agent_prompt_service import (
     PromptPayload,
     compose,
     compose_async,
