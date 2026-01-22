@@ -1,0 +1,53 @@
+{
+  "branch_protection_rules": {
+    "main": {
+      "required_status_checks": {
+        "strict": true,
+        "contexts": [
+          "Code Quality Checks",
+          "Test Python 3.10 on ubuntu-latest",
+          "Dependency Vulnerability Scan",
+          "Bandit Security Linter",
+          "Safety Vulnerability Check"
+        ]
+      },
+      "enforce_admins": true,
+      "required_pull_request_reviews": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "dismissal_restrictions": {
+          "users": [],
+          "teams": []
+        }
+      },
+      "restrictions": null,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "block_creations": false,
+      "required_conversation_resolution": true,
+      "lock_branch": false,
+      "allow_fork_syncing": false,
+      "required_linear_history": false,
+      "require_signed_commits": false
+    },
+    "develop": {
+      "required_status_checks": {
+        "strict": false,
+        "contexts": [
+          "Code Quality Checks",
+          "Test Python 3.10 on ubuntu-latest"
+        ]
+      },
+      "enforce_admins": false,
+      "required_pull_request_reviews": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews": false,
+        "require_code_owner_reviews": false
+      },
+      "allow_force_pushes": false,
+      "allow_deletions": false
+    }
+  },
+  "notes": "Apply these settings when GitHub Pro is available or repository becomes public"
+}

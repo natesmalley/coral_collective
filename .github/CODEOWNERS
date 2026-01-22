@@ -1,0 +1,42 @@
+# CODEOWNERS file for CoralCollective
+# These owners will be requested for review when someone opens a pull request
+
+# Global owners - review all changes
+* @natesmalley
+
+# Core framework files - require careful review
+/coral_collective/agent_runner.py @natesmalley
+/coral_collective/project_manager.py @natesmalley
+/coral_collective/agent_prompt_service.py @natesmalley
+
+# Agent definitions - domain experts
+/agents/core/ @natesmalley
+/agents/specialists/ @natesmalley
+
+# MCP integration - security sensitive
+/mcp/ @natesmalley
+/coral_collective/mcp/ @natesmalley
+
+# Configuration files
+/config/ @natesmalley
+*.yaml @natesmalley
+*.yml @natesmalley
+
+# Security and CI/CD
+/.github/ @natesmalley
+/SECURITY.md @natesmalley
+/.github/workflows/ @natesmalley
+
+# Documentation
+/docs/ @natesmalley
+*.md @natesmalley
+
+# Dependencies and build
+/requirements.txt @natesmalley
+/setup.py @natesmalley
+/pyproject.toml @natesmalley
+/Dockerfile @natesmalley
+/docker-compose.yml @natesmalley
+
+# Scripts
+*.sh @natesmalley

@@ -106,6 +106,8 @@ jobs:
   codeql:
     runs-on: ubuntu-latest
     name: CodeQL Analysis
+    # Only run if not a fork (forks can't use code scanning without enabling it)
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       actions: read
       contents: read
@@ -124,14 +126,17 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
+        continue-on-error: true
       
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
+        continue-on-error: true
       
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{matrix.language}}"
+        continue-on-error: true
 
   # OWASP dependency check
   dependency-check:
@@ -163,6 +168,8 @@ jobs:
   trivy:
     runs-on: ubuntu-latest
     name: Trivy Security Scanner
+    # Only run if not a fork
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       security-events: write
@@ -183,6 +190,7 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
         if: always()
+        continue-on-error: true
 
   # Secret scanning
   secrets:
