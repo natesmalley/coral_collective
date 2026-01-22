@@ -12,7 +12,7 @@ import json
 import math
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from agent_runner import AgentRunner
@@ -26,8 +26,8 @@ class PromptPayload:
     agent_name: str
     base_prompt: str
     task: str
-    project_context: Optional[Dict[str, Any]]
-    mcp_tools: Optional[Dict[str, Any]]
+    project_context: dict[str, Any] | None
+    mcp_tools: dict[str, Any] | None
 
     def to_default_text(self) -> str:
         """Default, model-agnostic prompt rendering."""
@@ -50,8 +50,8 @@ class PromptPayload:
 def compose(
     agent_id: str,
     task: str,
-    runner: Optional[AgentRunner] = None,
-    project_context: Optional[Dict[str, Any]] = None,
+    runner: AgentRunner | None = None,
+    project_context: dict[str, Any] | None = None,
     include_mcp_tools: bool = True,
 ) -> PromptPayload:
     """Compose a provider-agnostic prompt payload for a given agent and task."""
@@ -70,7 +70,7 @@ def compose(
     agent_name = agent_cfg.get("name", agent_id)
 
     # MCP tools (optional)
-    mcp_tools: Optional[Dict[str, Any]] = None
+    mcp_tools: dict[str, Any] | None = None
     if include_mcp_tools and getattr(runner, "mcp_client", None):
         try:
             tools = runner.mcp_client.get_tools_for_agent(agent_id)  # type: ignore[attr-defined]
@@ -96,7 +96,7 @@ def compose(
 class TokenEstimator:
     """Rough token estimator with optional tiktoken support."""
 
-    def __init__(self, model: Optional[str] = None):
+    def __init__(self, model: str | None = None):
         self.model = model or "generic"
         self._tk = None
         try:  # optional dependency
@@ -123,9 +123,9 @@ class TokenEstimator:
         return max(1, math.ceil(len(text) / 4))
 
 
-def build_sections(payload: PromptPayload, expand: bool = True) -> List[Dict[str, Any]]:
+def build_sections(payload: PromptPayload, expand: bool = True) -> list[dict[str, Any]]:
     """Build ordered sections with required/optional flags before provider rendering."""
-    sections: List[Dict[str, Any]] = []
+    sections: list[dict[str, Any]] = []
     sections.append(
         {
             "key": "role_prompt",
@@ -201,11 +201,11 @@ def _truncate_text_by_ratio(text: str, ratio: float) -> str:
 
 
 def fit_sections_to_budget(
-    sections: List[Dict[str, Any]],
+    sections: list[dict[str, Any]],
     estimator: TokenEstimator,
     budget_tokens: int,
     overhead_tokens: int = 128,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Reduce optional sections and truncate long ones to fit budget.
 
     Strategy:
@@ -217,7 +217,7 @@ def fit_sections_to_budget(
     # Work on a copy
     secs = [dict(s) for s in sections]
 
-    def total_tokens(items: List[Dict[str, Any]]) -> int:
+    def total_tokens(items: list[dict[str, Any]]) -> int:
         return sum(estimator.estimate(s["text"]) for s in items) + overhead_tokens
 
     # Quick success path
@@ -249,7 +249,7 @@ def fit_sections_to_budget(
             break
 
     # 3) Truncate role prompt (required) progressively until we fit
-    for i, s in enumerate(secs):
+    for _i, s in enumerate(secs):
         if s["key"] == "role_prompt":
             # Coarse passes
             for ratio in (0.75, 0.5, 0.35, 0.25):
@@ -268,10 +268,10 @@ def fit_sections_to_budget(
 
 def chunk_text(
     text: str, estimator: TokenEstimator, chunk_tokens: int = 2000
-) -> List[str]:
+) -> list[str]:
     """Split text into chunks near chunk_tokens boundaries, preferring paragraph breaks."""
     paragraphs = re.split(r"(\n\n+)", text)  # keep separators
-    chunks: List[str] = []
+    chunks: list[str] = []
     buf = []
     buf_tokens = 0
     for part in paragraphs:
@@ -291,8 +291,8 @@ def chunk_text(
 async def compose_async(
     agent_id: str,
     task: str,
-    runner: Optional[AgentRunner] = None,
-    project_context: Optional[Dict[str, Any]] = None,
+    runner: AgentRunner | None = None,
+    project_context: dict[str, Any] | None = None,
     include_mcp_tools: bool = True,
     mcp_bridge=None,
 ) -> PromptPayload:
@@ -314,7 +314,7 @@ async def compose_async(
     agent_name = agent_cfg.get("name", agent_id)
 
     # Enhanced MCP tools with bridge system
-    mcp_tools_text: Optional[str] = None
+    mcp_tools_text: str | None = None
     if include_mcp_tools and mcp_bridge:
         try:
             # Import bridge components

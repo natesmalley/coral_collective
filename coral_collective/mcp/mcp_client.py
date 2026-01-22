@@ -180,14 +180,14 @@ class MCPTransport:
                 self.stats.last_error = f"JSON decode error: {e}"
                 raise ValueError(
                     f"Invalid JSON received from {self.server_name}: {json_data}"
-                )
+                ) from e
 
         except asyncio.TimeoutError:
             self.stats.errors += 1
             self.stats.last_error = f"Read timeout after {timeout}s"
             raise TimeoutError(
                 f"Timeout reading from {self.server_name} after {timeout}s"
-            )
+            ) from None
         except Exception as e:
             self.stats.errors += 1
             self.stats.last_error = str(e)
