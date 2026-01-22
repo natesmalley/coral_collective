@@ -1,0 +1,233 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run security scan every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # Python dependency vulnerability scanning
+  pip-audit:
+    runs-on: ubuntu-latest
+    name: Dependency Vulnerability Scan
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install pip-audit
+        run: pip install pip-audit
+      
+      - name: Run pip-audit
+        run: pip-audit -r requirements.txt --desc --fix --dry-run
+        continue-on-error: true
+      
+      - name: Upload pip-audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-results
+          path: pip-audit-report.txt
+          retention-days: 30
+
+  # Bandit security linter for Python
+  bandit:
+    runs-on: ubuntu-latest
+    name: Bandit Security Linter
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install Bandit
+        run: pip install bandit[toml]
+      
+      - name: Run Bandit
+        run: bandit -r coral_collective/ -f json -o bandit-report.json
+        continue-on-error: true
+      
+      - name: Upload Bandit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-results
+          path: bandit-report.json
+          retention-days: 30
+
+  # Safety check for known security vulnerabilities
+  safety-check:
+    runs-on: ubuntu-latest
+    name: Safety Vulnerability Check
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install Safety
+        run: pip install safety
+      
+      - name: Run Safety check
+        run: safety check -r requirements.txt --json > safety-report.json
+        continue-on-error: true
+      
+      - name: Upload Safety results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-results
+          path: safety-report.json
+          retention-days: 30
+
+  # CodeQL analysis for security vulnerabilities
+  codeql:
+    runs-on: ubuntu-latest
+    name: CodeQL Analysis
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['python']
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+      
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # OWASP dependency check
+  dependency-check:
+    runs-on: ubuntu-latest
+    name: OWASP Dependency Check
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'CoralCollective'
+          path: '.'
+          format: 'HTML'
+          args: >
+            --enableRetired
+            --enableExperimental
+        continue-on-error: true
+      
+      - name: Upload OWASP results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-dependency-check-results
+          path: reports/
+          retention-days: 30
+
+  # Trivy security scanner
+  trivy:
+    runs-on: ubuntu-latest
+    name: Trivy Security Scanner
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Secret scanning
+  secrets:
+    runs-on: ubuntu-latest
+    name: Secret Detection
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Detect secrets with Trufflehog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified --json > trufflehog-report.json
+        continue-on-error: true
+      
+      - name: Upload Trufflehog results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trufflehog-results
+          path: trufflehog-report.json
+          retention-days: 30
+
+  # Consolidate and report results
+  security-report:
+    needs: [pip-audit, bandit, safety-check, codeql, dependency-check, trivy, secrets]
+    runs-on: ubuntu-latest
+    if: always()
+    name: Security Report Summary
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: security-artifacts
+      
+      - name: Generate Security Report
+        run: |
+          echo "# Security Scan Report" > SECURITY_REPORT.md
+          echo "Date: $(date)" >> SECURITY_REPORT.md
+          echo "" >> SECURITY_REPORT.md
+          
+          echo "## Scan Results Summary" >> SECURITY_REPORT.md
+          echo "| Tool | Status |" >> SECURITY_REPORT.md
+          echo "|------|--------|" >> SECURITY_REPORT.md
+          
+          for dir in security-artifacts/*/; do
+            tool=$(basename "$dir")
+            echo "| $tool | ✓ Completed |" >> SECURITY_REPORT.md
+          done
+          
+          echo "" >> SECURITY_REPORT.md
+          echo "Detailed results available in workflow artifacts." >> SECURITY_REPORT.md
+      
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-summary
+          path: SECURITY_REPORT.md
+          retention-days: 90
