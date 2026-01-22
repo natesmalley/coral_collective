@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Code Quality Checks
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -81,7 +81,7 @@ jobs:
             python-version: '3.12'
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -137,7 +137,7 @@ jobs:
     name: Build Package
     needs: [lint, test]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -168,7 +168,7 @@ jobs:
     name: Docker Build Test
     needs: [lint]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -191,7 +191,7 @@ jobs:
     name: Integration Tests
     needs: [build]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Set up Python
         uses: actions/setup-python@v5

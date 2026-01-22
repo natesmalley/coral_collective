@@ -35,7 +35,7 @@ jobs:
       new_version: ${{ steps.bump.outputs.new_version }}
       changelog: ${{ steps.changelog.outputs.changelog }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -128,7 +128,7 @@ jobs:
     needs: [version-bump]
     if: always() && (needs.version-bump.result == 'success' || startsWith(github.ref, 'refs/tags/'))
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       
@@ -267,7 +267,7 @@ jobs:
     needs: [build-and-release]
     if: success()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Get version
         id: version
@@ -312,7 +312,7 @@ jobs:
     needs: [build-and-release]
     if: success() && github.event.inputs.prerelease != 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
       
