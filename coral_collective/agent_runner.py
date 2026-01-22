@@ -3,21 +3,22 @@
 CoralCollective Runner - Main operational interface for running agents with automatic tracking
 """
 
+import argparse
+import json
 import os
 import sys
-import yaml
-import json
 import time
-import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-import argparse
+from typing import Dict, List, Optional
+
+import yaml
 from rich.console import Console
-from rich.table import Table
-from rich.prompt import Prompt, IntPrompt, Confirm
-from rich.panel import Panel
 from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.prompt import Confirm, IntPrompt, Prompt
+from rich.table import Table
+
 from tools.feedback_collector import FeedbackCollector
 from tools.project_state import ProjectStateManager
 
@@ -29,6 +30,7 @@ mcp_client = None
 try:
     sys.path.append(str(Path(__file__).parent / "mcp"))
     from mcp_client import MCPClient
+
     from tools.agent_mcp_bridge import AgentMCPBridge, MCPToolsPromptGenerator
 
     MCP_AVAILABLE = True
@@ -122,7 +124,7 @@ class AgentRunner:
 
         # Now try to load the config
         try:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 return json.load(f)
         except FileNotFoundError:
             console.print(
@@ -257,7 +259,7 @@ class AgentRunner:
         if not prompt_file.exists():
             return f"Agent prompt file not found: {prompt_file}"
 
-        with open(prompt_file, "r") as f:
+        with open(prompt_file) as f:
             content = f.read()
 
         # Extract the prompt section from the markdown
@@ -433,10 +435,10 @@ Please complete this task following your specialized expertise and provide clear
         if provider:
             try:
                 from agent_prompt_service import (
-                    compose,
-                    build_sections,
                     TokenEstimator,
+                    build_sections,
                     chunk_text,
+                    compose,
                 )
 
                 if provider == "claude":
@@ -562,14 +564,14 @@ Please complete this task following your specialized expertise and provide clear
                         )
                     else:
                         chunk_size = int(
-                            os.environ.get("CORAL_CHUNK_TOKENS", chunk_tokens)
+                            os.environ.get("CORAL_CHUNK_TOKENS", "100000")
                         )
                         chunk_size = max(1, min(chunk_size, max_input_tokens))
                         chunks = chunk_text(
                             output_text, estimator, chunk_tokens=chunk_size
                         )
                         for idx, ch in enumerate(chunks, start=1):
-                            if validate_tokens:
+                            if args.validate_tokens if 'args' in locals() else False:
                                 console.print(
                                     f"[cyan]chunk {idx} tokens[/cyan]: {estimator.estimate(ch)}"
                                 )
@@ -604,7 +606,7 @@ Please complete this task following your specialized expertise and provide clear
 
             pyperclip.copy(full_prompt)
             console.print("[green]✓ Prompt copied to clipboard![/green]")
-        except:
+        except Exception:
             console.print(
                 "[yellow]! Could not copy to clipboard - install pyperclip[/yellow]"
             )
@@ -635,7 +637,7 @@ Please complete this task following your specialized expertise and provide clear
                 latest_file.unlink()
             try:
                 latest_file.symlink_to(prompt_file.name)
-            except:
+            except Exception:
                 # Fallback for Windows
                 import shutil
 
@@ -680,7 +682,7 @@ Please complete this task following your specialized expertise and provide clear
             console.print(
                 "[yellow]Auto-detected automation environment - switching to non-interactive mode[/yellow]"
             )
-            return self.run_agent(agent_id, task, context, non_interactive=True)
+            return self.run_agent(agent_id, task, None, non_interactive=True)
 
         # Interactive mode - existing behavior
         if Confirm.ask("Show full prompt?", default=False):
@@ -981,7 +983,7 @@ Please complete this task following your specialized expertise and provide clear
         else:
             sequence = self.agents_config["project_templates"][project_type]["sequence"]
 
-        console.print(f"\n[bold green]Workflow Sequence:[/bold green]")
+        console.print("\n[bold green]Workflow Sequence:[/bold green]")
         for i, agent_id in enumerate(sequence, 1):
             agent_name = self.agents_config["agents"][agent_id]["name"]
             console.print(f"{i}. {agent_name} ({agent_id})")
@@ -1016,7 +1018,7 @@ Please complete this task following your specialized expertise and provide clear
                 task = f"Create initial setup for: {project['description']}"
             elif context.get("last_handoff"):
                 task = context["last_handoff"].get(
-                    "next_task", f"Continue from previous agent output"
+                    "next_task", "Continue from previous agent output"
                 )
             else:
                 task = f"Continue project: {project['name']}"
@@ -1044,7 +1046,7 @@ Please complete this task following your specialized expertise and provide clear
                     break
 
             if i < len(sequence) and not non_interactive:
-                if not Confirm.ask(f"Continue to next agent?", default=True):
+                if not Confirm.ask("Continue to next agent?", default=True):
                     console.print("[yellow]Workflow paused[/yellow]")
                     break
 
@@ -1093,7 +1095,7 @@ Please complete this task following your specialized expertise and provide clear
             sum(1 for i in interactions if i["success"]) / len(interactions) * 100
         )
 
-        console.print(f"\n[bold]Summary:[/bold]")
+        console.print("\n[bold]Summary:[/bold]")
         console.print(f"• Total session time: {total_time:.0f} minutes")
         console.print(f"• Agents used: {len(interactions)}")
         console.print(f"• Success rate: {success_rate:.0f}%")
@@ -1106,7 +1108,7 @@ Please complete this task following your specialized expertise and provide clear
         # Load metrics
         metrics_path = self.base_path / "metrics" / "agent_metrics.yaml"
         if metrics_path.exists():
-            with open(metrics_path, "r") as f:
+            with open(metrics_path) as f:
                 metrics = yaml.safe_load(f)
 
             if "performance_summary" in metrics:
@@ -1136,7 +1138,7 @@ Please complete this task following your specialized expertise and provide clear
         # Show pending improvements
         feedback_path = self.base_path / "feedback" / "agent_feedback.yaml"
         if feedback_path.exists():
-            with open(feedback_path, "r") as f:
+            with open(feedback_path) as f:
                 feedback_data = yaml.safe_load(f)
 
             high_priority = []
@@ -1265,7 +1267,7 @@ async def async_main():
             )
         else:
             # Create default config
-            runner_temp = AgentRunner()
+            AgentRunner()
             console.print(
                 "[yellow]Configuration created. You can now use CoralCollective![/yellow]"
             )
@@ -1346,7 +1348,7 @@ async def async_main():
                 > 0
             ):
                 metrics = result["mcp_metrics"]["usage_metrics"]
-                console.print(f"\n[bold cyan]MCP Usage Summary:[/bold cyan]")
+                console.print("\n[bold cyan]MCP Usage Summary:[/bold cyan]")
                 console.print(f"• Tools used: {metrics['total_calls']} calls")
                 console.print(f"• Success rate: {metrics.get('success_rate', 0):.1%}")
                 console.print(
@@ -1390,7 +1392,7 @@ async def async_main():
                     await runner.initialize_mcp()
 
                     servers = runner.mcp_client.get_available_servers()
-                    console.print(f"\n[bold]Available MCP Servers:[/bold]")
+                    console.print("\n[bold]Available MCP Servers:[/bold]")
 
                     for server_name in servers:
                         server_info = runner.mcp_client.get_server_info(server_name)
@@ -1410,7 +1412,7 @@ async def async_main():
                                 console.print(f"    Features: {', '.join(features)}")
 
                     # Show agent permissions
-                    console.print(f"\n[bold]Agent Permissions Sample:[/bold]")
+                    console.print("\n[bold]Agent Permissions Sample:[/bold]")
                     sample_agents = [
                         "backend_developer",
                         "frontend_developer",

@@ -3,15 +3,16 @@
 Project Manager - Manage multiple projects with Agent Force
 """
 
-import yaml
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
+
+import yaml
 from rich.console import Console
-from rich.table import Table
-from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
+from rich.prompt import Confirm, Prompt
+from rich.table import Table
 from rich.tree import Tree
 
 console = Console()
@@ -28,7 +29,7 @@ class ProjectManager:
         """Load all projects"""
         projects = {}
         for project_file in self.projects_dir.glob("*.yaml"):
-            with open(project_file, "r") as f:
+            with open(project_file) as f:
                 project = yaml.safe_load(f)
                 projects[project["name"]] = project
         return projects
@@ -296,7 +297,7 @@ class ProjectManager:
             console.print(f"[green]✓ Advanced to Phase {current_phase + 1}[/green]")
         else:
             project["status"] = "completed"
-            console.print(f"[green]✓ Project completed![/green]")
+            console.print("[green]✓ Project completed![/green]")
 
         self.save_project(project)
 
@@ -314,7 +315,7 @@ class ProjectManager:
 
         project["notes"].append(note)
         self.save_project(project)
-        console.print(f"[green]✓ Note added to project[/green]")
+        console.print("[green]✓ Note added to project[/green]")
 
     def generate_project_report(self, project_name: str) -> str:
         """Generate a comprehensive project report"""

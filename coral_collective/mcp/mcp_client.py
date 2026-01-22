@@ -4,21 +4,18 @@ Production-ready MCP Client for CoralCollective
 Implements full JSON-RPC 2.0 protocol with async communication, connection pooling, and robust error handling.
 """
 
-import os
-import json
 import asyncio
-import subprocess
-import threading
-import time
+import json
+import logging
+import os
+import traceback
 import uuid
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field
-from collections import defaultdict
-import logging
-import traceback
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Dict, List, Optional
 
 # Third-party imports
 try:
@@ -413,7 +410,7 @@ class MCPConnection:
 
             return response
 
-        except Exception as e:
+        except Exception:
             # Clean up pending request
             self.pending_requests.pop(request.id, None)
             raise
@@ -594,7 +591,7 @@ class MCPClient:
                 logger.error(f"Configuration file not found: {self.config_path}")
                 return
 
-            with open(self.config_path, "r") as f:
+            with open(self.config_path) as f:
                 if self.config_path.suffix in [".yaml", ".yml"]:
                     if yaml is None:
                         raise ImportError(

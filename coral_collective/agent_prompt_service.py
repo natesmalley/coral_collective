@@ -9,12 +9,10 @@ Adapters can render and deliver the payload for different providers (Claude, Cod
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 import math
-from typing import List, Tuple
 import re
-from pathlib import Path
-from typing import Any, Dict, Optional
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 try:
     from agent_runner import AgentRunner

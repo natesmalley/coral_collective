@@ -4,8 +4,8 @@ Version utility functions for CoralCollective
 Provides version parsing, comparison, and formatting utilities.
 """
 
-from typing import Any, Dict, Optional, Tuple
 import re
+from typing import Any, Dict, Optional, Tuple
 
 
 def parse_version(version_string: str) -> Tuple[int, int, int]:
