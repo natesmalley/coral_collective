@@ -427,8 +427,33 @@ class ProjectManager:
 
 
 def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="CoralCollective Project Manager")
+    parser.add_argument("--list", action="store_true", help="List all projects")
+    parser.add_argument("--create", help="Create a new project with given name")
+    parser.add_argument("--status", help="Get status of a project")
+
+    args = parser.parse_args()
+
     manager = ProjectManager()
 
+    # Handle command-line arguments
+    if args.list:
+        manager.list_projects()
+        return
+    elif args.create:
+        manager.create_project(args.create)
+        return
+    elif args.status:
+        project = manager.get_project(args.status)
+        if project:
+            console.print(manager.generate_project_report(args.status))
+        else:
+            console.print(f"[red]Project '{args.status}' not found[/red]")
+        return
+
+    # Interactive mode
     while True:
         console.print("\n[bold cyan]📊 Project Manager[/bold cyan]")
         console.print("\n1. Create Project")
