@@ -563,15 +563,13 @@ Please complete this task following your specialized expertise and provide clear
                             filename_stub=filename_stub,
                         )
                     else:
-                        chunk_size = int(
-                            os.environ.get("CORAL_CHUNK_TOKENS", "100000")
-                        )
+                        chunk_size = int(os.environ.get("CORAL_CHUNK_TOKENS", "100000"))
                         chunk_size = max(1, min(chunk_size, max_input_tokens))
                         chunks = chunk_text(
                             output_text, estimator, chunk_tokens=chunk_size
                         )
                         for idx, ch in enumerate(chunks, start=1):
-                            if args.validate_tokens if 'args' in locals() else False:
+                            if args.validate_tokens if "args" in locals() else False:
                                 console.print(
                                     f"[cyan]chunk {idx} tokens[/cyan]: {estimator.estimate(ch)}"
                                 )
