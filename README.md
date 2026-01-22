@@ -269,6 +269,16 @@ See [IDE Integration Guide](docs/IDE_INTEGRATION.md) for detailed setup instruct
 - [MCP Integration](docs/MCP_INTEGRATION_STRATEGY.md) - MCP setup guide
 - [FAQ](docs/FAQ.md) - Common questions and solutions
 
+### Version Information
+
+```python
+from coral_collective.utils import get_version_info
+
+# Get detailed version information
+info = get_version_info()
+print(f"CoralCollective v{info['version']}")
+```
+
 ## 🛟 Support
 
 - **GitHub Issues**: [Report bugs or request features](https://github.com/coral-collective/coral-collective/issues)
