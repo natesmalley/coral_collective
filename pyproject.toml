@@ -227,6 +227,8 @@ markers = [
     "workflows: marks tests for workflow functionality",
     "docker: marks tests for Docker functionality",
     "agent: marks tests for agent functionality",
+    "kubernetes: marks tests for Kubernetes functionality",
+    "monitoring: marks tests for monitoring functionality",
 ]
 filterwarnings = [
     "error",
