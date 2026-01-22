@@ -1,6 +1,6 @@
 # CoralCollective 🪸
 
-[![Python versions](https://img.shields.io/pypi/pyversions/coral-collective.svg)](https://pypi.org/project/coral-collective/)
+[![Python 3.8-3.12](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -11,7 +11,7 @@ CoralCollective is an AI agent orchestration framework that can assist in how yo
 ## ⚡ Quick Start
 
 ### Prerequisites
-- Python 3.8+ 
+- Python 3.8 - 3.12 (3.10+ recommended for best performance)
 - Virtual environment (recommended)
 - API keys for AI models (OpenAI, Anthropic, etc.)
 
