@@ -25,7 +25,7 @@ from typing import Dict, List
 import sys
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from project_manager import ProjectManager
+from coral_collective.project_manager import ProjectManager
 
 
 class TestProjectManagerInitialization:

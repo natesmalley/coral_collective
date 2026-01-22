@@ -18,6 +18,7 @@ except ImportError:
     # For development, allow imports from root
     import sys
     import os
+
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
     from agent_runner import AgentRunner
     from project_manager import ProjectManager
@@ -31,24 +32,26 @@ from .tools.feedback_collector import FeedbackCollector
 from .config import load_agents_config, load_model_config
 
 __all__ = [
-    'AgentRunner',
-    'ProjectManager',
-    'AgentPromptService',
-    'ProjectStateManager',
-    'FeedbackCollector',
-    'load_agents_config',
-    'load_model_config',
-    '__version__',
+    "AgentRunner",
+    "ProjectManager",
+    "AgentPromptService",
+    "ProjectStateManager",
+    "FeedbackCollector",
+    "load_agents_config",
+    "load_model_config",
+    "__version__",
 ]
+
 
 def get_version() -> str:
     """Get the current version of CoralCollective."""
     return __version__
 
+
 def list_agents() -> List[str]:
     """List all available agents."""
     try:
         config = load_agents_config()
-        return list(config.get('agents', {}).keys())
+        return list(config.get("agents", {}).keys())
     except Exception:
         return []

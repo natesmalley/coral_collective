@@ -24,8 +24,8 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 try:
     from mcp.mcp_client import MCPClient, MCPServer, MCPMessage
-    from tools.agent_mcp_bridge import AgentMCPBridge
-    from tools.mcp_error_handler import MCPErrorHandler
+    from coral_collective.tools.agent_mcp_bridge import AgentMCPBridge
+    from coral_collective.tools.mcp_error_handler import MCPErrorHandler
 except ImportError:
     # Mock MCP components if not available
     class MCPClient:

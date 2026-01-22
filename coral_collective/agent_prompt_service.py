@@ -38,11 +38,7 @@ class PromptPayload:
             if self.project_context
             else "New project"
         )
-        tools = (
-            json.dumps(self.mcp_tools, indent=2)
-            if self.mcp_tools
-            else "None"
-        )
+        tools = json.dumps(self.mcp_tools, indent=2) if self.mcp_tools else "None"
         return (
             f"You are acting as '{self.agent_name}' ({self.agent_id}).\n\n"
             f"=== ROLE PROMPT ===\n{self.base_prompt}\n\n"
@@ -98,6 +94,7 @@ def compose(
 
 # --- Token utilities and budgeting ---
 
+
 class TokenEstimator:
     """Rough token estimator with optional tiktoken support."""
 
@@ -131,12 +128,14 @@ class TokenEstimator:
 def build_sections(payload: PromptPayload, expand: bool = True) -> List[Dict[str, Any]]:
     """Build ordered sections with required/optional flags before provider rendering."""
     sections: List[Dict[str, Any]] = []
-    sections.append({
-        'key': 'role_prompt',
-        'title': 'ROLE PROMPT',
-        'text': payload.base_prompt,
-        'required': True,
-    })
+    sections.append(
+        {
+            "key": "role_prompt",
+            "title": "ROLE PROMPT",
+            "text": payload.base_prompt,
+            "required": True,
+        }
+    )
 
     # Project context is optional; include if provided or expand requested
     context_text = None
@@ -145,12 +144,14 @@ def build_sections(payload: PromptPayload, expand: bool = True) -> List[Dict[str
     elif expand:
         context_text = "New project"
     if context_text is not None:
-        sections.append({
-            'key': 'project_context',
-            'title': 'PROJECT CONTEXT',
-            'text': context_text,
-            'required': False,
-        })
+        sections.append(
+            {
+                "key": "project_context",
+                "title": "PROJECT CONTEXT",
+                "text": context_text,
+                "required": False,
+            }
+        )
 
     # MCP tools optional - handle both old dict format and new documentation format
     if expand and payload.mcp_tools:
@@ -158,27 +159,33 @@ def build_sections(payload: PromptPayload, expand: bool = True) -> List[Dict[str
             # New bridge-generated documentation format
             mcp_text = payload.mcp_tools["documentation"]
             if mcp_text:
-                sections.append({
-                    'key': 'mcp_tools',
-                    'title': 'MCP TOOLS AVAILABLE',
-                    'text': mcp_text,
-                    'required': False,
-                })
+                sections.append(
+                    {
+                        "key": "mcp_tools",
+                        "title": "MCP TOOLS AVAILABLE",
+                        "text": mcp_text,
+                        "required": False,
+                    }
+                )
         else:
             # Legacy format - raw JSON
-            sections.append({
-                'key': 'mcp_tools',
-                'title': 'MCP TOOLS',
-                'text': json.dumps(payload.mcp_tools, indent=2),
-                'required': False,
-            })
+            sections.append(
+                {
+                    "key": "mcp_tools",
+                    "title": "MCP TOOLS",
+                    "text": json.dumps(payload.mcp_tools, indent=2),
+                    "required": False,
+                }
+            )
 
-    sections.append({
-        'key': 'task',
-        'title': 'TASK',
-        'text': payload.task,
-        'required': True,
-    })
+    sections.append(
+        {
+            "key": "task",
+            "title": "TASK",
+            "text": payload.task,
+            "required": True,
+        }
+    )
 
     return sections
 
@@ -213,7 +220,7 @@ def fit_sections_to_budget(
     secs = [dict(s) for s in sections]
 
     def total_tokens(items: List[Dict[str, Any]]) -> int:
-        return sum(estimator.estimate(s['text']) for s in items) + overhead_tokens
+        return sum(estimator.estimate(s["text"]) for s in items) + overhead_tokens
 
     # Quick success path
     if total_tokens(secs) <= budget_tokens:
@@ -221,8 +228,8 @@ def fit_sections_to_budget(
 
     # 1) Drop MCP tools if present
     for i, s in list(enumerate(secs)):
-        if s['key'] == 'mcp_tools':
-            test = secs[:i] + secs[i+1:]
+        if s["key"] == "mcp_tools":
+            test = secs[:i] + secs[i + 1 :]
             if total_tokens(test) <= budget_tokens:
                 return test
             secs = test
@@ -230,14 +237,14 @@ def fit_sections_to_budget(
 
     # 2) Truncate project context
     for i, s in list(enumerate(secs)):
-        if s['key'] == 'project_context':
+        if s["key"] == "project_context":
             # Iteratively reduce to 75%, 50%, 25%
             for ratio in (0.75, 0.5, 0.25):
-                s['text'] = _truncate_text_by_ratio(s['text'], ratio)
+                s["text"] = _truncate_text_by_ratio(s["text"], ratio)
                 if total_tokens(secs) <= budget_tokens:
                     return secs
             # Drop entirely if still too big
-            test = secs[:i] + secs[i+1:]
+            test = secs[:i] + secs[i + 1 :]
             if total_tokens(test) <= budget_tokens:
                 return test
             secs = test
@@ -245,23 +252,25 @@ def fit_sections_to_budget(
 
     # 3) Truncate role prompt (required) progressively until we fit
     for i, s in enumerate(secs):
-        if s['key'] == 'role_prompt':
+        if s["key"] == "role_prompt":
             # Coarse passes
             for ratio in (0.75, 0.5, 0.35, 0.25):
-                s['text'] = _truncate_text_by_ratio(s['text'], ratio)
+                s["text"] = _truncate_text_by_ratio(s["text"], ratio)
                 if total_tokens(secs) <= budget_tokens:
                     return secs
             # Fine-grained trimming loop
             ratio = 0.25
-            while total_tokens(secs) > budget_tokens and len(s['text']) > 0:
+            while total_tokens(secs) > budget_tokens and len(s["text"]) > 0:
                 ratio *= 0.85
-                s['text'] = _truncate_text_by_ratio(s['text'], ratio)
+                s["text"] = _truncate_text_by_ratio(s["text"], ratio)
             return secs
 
     return secs
 
 
-def chunk_text(text: str, estimator: TokenEstimator, chunk_tokens: int = 2000) -> List[str]:
+def chunk_text(
+    text: str, estimator: TokenEstimator, chunk_tokens: int = 2000
+) -> List[str]:
     """Split text into chunks near chunk_tokens boundaries, preferring paragraph breaks."""
     paragraphs = re.split(r"(\n\n+)", text)  # keep separators
     chunks: List[str] = []
@@ -270,14 +279,14 @@ def chunk_text(text: str, estimator: TokenEstimator, chunk_tokens: int = 2000) -
     for part in paragraphs:
         ptoks = estimator.estimate(part)
         if buf_tokens + ptoks > chunk_tokens and buf:
-            chunks.append(''.join(buf).strip())
+            chunks.append("".join(buf).strip())
             buf = [part]
             buf_tokens = ptoks
         else:
             buf.append(part)
             buf_tokens += ptoks
     if buf:
-        chunks.append(''.join(buf).strip())
+        chunks.append("".join(buf).strip())
     return chunks
 
 
@@ -325,7 +334,7 @@ async def compose_async(
     runner: Optional[AgentRunner] = None,
     project_context: Optional[Dict[str, Any]] = None,
     include_mcp_tools: bool = True,
-    mcp_bridge = None
+    mcp_bridge=None,
 ) -> PromptPayload:
     """
     Async version of compose that uses the new MCP bridge system.
@@ -336,41 +345,43 @@ async def compose_async(
         runner = AgentRunner()
     if runner is None:
         raise RuntimeError("AgentRunner unavailable; cannot compose prompt")
-    
+
     # Use the existing AgentRunner logic to get the base agent prompt
     base_prompt = runner.get_agent_prompt(agent_id)
-    
+
     # Agent metadata from config
     agent_cfg = runner.agents_config.get("agents", {}).get(agent_id, {})
     agent_name = agent_cfg.get("name", agent_id)
-    
+
     # Enhanced MCP tools with bridge system
     mcp_tools_text: Optional[str] = None
     if include_mcp_tools and mcp_bridge:
         try:
             # Import bridge components
             from tools.agent_mcp_bridge import MCPToolsPromptGenerator
-            
+
             # Generate comprehensive MCP tools documentation
             prompt_generator = MCPToolsPromptGenerator(mcp_bridge)
             mcp_tools_text = await prompt_generator.generate_tools_section()
-            
+
             if not mcp_tools_text.strip():
                 mcp_tools_text = None
-                
+
         except Exception as e:
             print(f"Warning: Failed to generate MCP tools documentation: {e}")
             # Fallback to simple tools list
             try:
                 available_tools = await mcp_bridge.get_available_tools()
                 if available_tools:
-                    mcp_tools_text = f"Available MCP Tools: {', '.join(available_tools.keys())}"
+                    mcp_tools_text = (
+                        f"Available MCP Tools: {', '.join(available_tools.keys())}"
+                    )
             except:
                 pass
-    
+
     # Convert text to dict format for compatibility (will be converted back in build_sections)
     mcp_tools_dict = {"documentation": mcp_tools_text} if mcp_tools_text else None
-    
+
     return PromptPayload(
         agent_id=agent_id,
         agent_name=agent_name,

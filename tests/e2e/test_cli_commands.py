@@ -96,7 +96,7 @@ print("OUTPUT:", result.output)
 import sys
 sys.path.insert(0, "{self.original_cwd}")
 
-from agent_runner import AgentRunner
+from coral_collective.agent_runner import AgentRunner
 import argparse
 
 # Simulate CLI argument parsing
@@ -156,7 +156,7 @@ print("DURATION:", result["duration"])
 import sys
 sys.path.insert(0, "{self.original_cwd}")
 
-from agent_runner import AgentRunner
+from coral_collective.agent_runner import AgentRunner
 
 runner = AgentRunner()
 agents = runner.get_available_agents()
@@ -208,7 +208,7 @@ for agent in agents:
 import sys
 sys.path.insert(0, "{self.original_cwd}")
 
-from project_manager import ProjectManager
+from coral_collective.project_manager import ProjectManager
 
 manager = ProjectManager()
 projects = manager.get_all_projects()
@@ -286,7 +286,7 @@ class TestInteractiveCliWorkflows:
 import sys
 sys.path.insert(0, "{self.original_cwd}")
 
-from agent_runner import AgentRunner
+from coral_collective.agent_runner import AgentRunner
 from unittest.mock import patch
 
 # Simulate interactive selection
@@ -328,7 +328,7 @@ with patch('agent_runner.Prompt.ask') as mock_ask:
 import sys
 sys.path.insert(0, "{self.original_cwd}")
 
-from agent_runner import AgentRunner
+from coral_collective.agent_runner import AgentRunner
 
 workflow_definition = {{
     "name": "full_stack_development",
@@ -469,7 +469,7 @@ except Exception as e:
 import sys
 sys.path.insert(0, "{self.original_cwd}")
 
-from agent_runner import AgentRunner
+from coral_collective.agent_runner import AgentRunner
 
 try:
     runner = AgentRunner()
@@ -502,7 +502,7 @@ except Exception as e:
 import sys
 sys.path.insert(0, "{self.original_cwd}")
 
-from project_manager import ProjectManager
+from coral_collective.project_manager import ProjectManager
 
 manager = ProjectManager()
 project = manager.get_project("nonexistent_project")

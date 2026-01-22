@@ -23,11 +23,10 @@ from unittest.mock import Mock, patch, AsyncMock, MagicMock
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agent_runner import AgentRunner
-from tools.project_state import ProjectStateManager
-from tools.feedback_collector import FeedbackCollector
-from tools.multi_agent_orchestrator import MultiAgentOrchestrator
-from parallel_agent_runner import ParallelAgentRunner, AgentTask
+from coral_collective.agent_runner import AgentRunner
+from coral_collective.tools.project_state import ProjectStateManager
+from coral_collective.tools.feedback_collector import FeedbackCollector
+from coral_collective.tools.multi_agent_orchestrator import MultiAgentOrchestrator
 from tests.fixtures.test_data import MockProjectSetup, create_test_environment
 
 
@@ -331,7 +330,6 @@ class TestParallelWorkflows:
             }
         })
         
-        self.parallel_runner = ParallelAgentRunner(base_path=self.temp_dir)
         
     def teardown_method(self):
         """Clean up test files"""
@@ -656,7 +654,7 @@ class TestWorkflowOrchestration:
         assert self.orchestrator.validate_agent_dependencies(optimized_sequence)
         
         # Create a plan for time estimation
-        from tools.multi_agent_orchestrator import OrchestrationPlan
+        from coral_collective.tools.multi_agent_orchestrator import OrchestrationPlan
         plan = OrchestrationPlan(
             task="Test optimization",
             phases=[
@@ -694,7 +692,6 @@ class TestWorkflowPerformance:
     def setup_method(self):
         """Set up performance test environment"""
         self.temp_dir, self.setup = create_test_environment()
-        self.parallel_runner = ParallelAgentRunner(base_path=self.temp_dir)
         
     def teardown_method(self):
         """Clean up test files"""

@@ -8,6 +8,6 @@ from .project_state import ProjectStateManager
 from .feedback_collector import FeedbackCollector
 
 __all__ = [
-    'ProjectStateManager',
-    'FeedbackCollector',
+    "ProjectStateManager",
+    "FeedbackCollector",
 ]

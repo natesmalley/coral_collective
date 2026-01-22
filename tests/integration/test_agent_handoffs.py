@@ -23,8 +23,8 @@ from unittest.mock import Mock, patch, AsyncMock
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from agent_runner import AgentRunner
-from tools.project_state import ProjectStateManager, AgentHandoff
+from coral_collective.agent_runner import AgentRunner
+from coral_collective.tools.project_state import ProjectStateManager, AgentHandoff
 from tests.fixtures.test_data import create_test_environment
 
 # Try to import memory system if available
