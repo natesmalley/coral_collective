@@ -217,6 +217,11 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+    "handoffs: marks tests for agent handoffs",
+    "memory: marks tests for memory system",
+    "mcp: marks tests for MCP integration",
+    "performance: marks tests for performance testing",
 ]
 filterwarnings = [
     "error",
