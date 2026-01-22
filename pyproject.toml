@@ -222,6 +222,9 @@ markers = [
     "memory: marks tests for memory system",
     "mcp: marks tests for MCP integration",
     "performance: marks tests for performance testing",
+    "cli: marks tests for CLI functionality",
+    "deployment: marks tests for deployment functionality",
+    "workflows: marks tests for workflow functionality",
 ]
 filterwarnings = [
     "error",
