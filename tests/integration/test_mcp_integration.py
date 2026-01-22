@@ -17,6 +17,7 @@ from pathlib import Path
 from datetime import datetime
 from unittest.mock import Mock, patch, AsyncMock, MagicMock
 from typing import Dict, List, Any
+from urllib.parse import urlparse
 
 # Import MCP components
 import sys
@@ -414,7 +415,8 @@ class TestAgentMCPIntegration:
         assert file_result["file_created"] == "src/api/main.py"
         
         repo_result = next(r for r in workflow_result["results"] if r["tool"] == "create_repo")
-        assert "github.com" in repo_result["repo_url"]
+        parsed_url = urlparse(repo_result["repo_url"])
+        assert parsed_url.hostname == "github.com"
     
     async def test_agent_mcp_error_recovery(self):
         """Test agent workflow error recovery with MCP tools"""
