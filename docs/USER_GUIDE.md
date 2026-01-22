@@ -258,7 +258,7 @@ CoralCollective includes 20+ specialized agents, each with specific expertise.
 - **Deliverables**: ML models, AI integrations, data pipelines
 
 #### Security Specialist
-- **Expertise**: Application security, vulnerability assessment
+- **Expertise**: Application security, defensive security analysis
 - **Focus**: Authentication, authorization, data protection
 - **Deliverables**: Security audits, vulnerability fixes, compliance reports
 
@@ -380,42 +380,41 @@ coral config memory --type local --embedding-model sentence-transformers
 ### Storing Project Knowledge
 
 ```python
-from coral_collective.memory import MemorySystem
+from tools.project_state import ProjectStateManager
 
-# Initialize memory system
-memory = MemorySystem()
+# Initialize project state manager
+state_manager = ProjectStateManager()
 
 # Store project information
-await memory.store_memory(
-    key="project_requirements",
-    content="Task management app with user auth and team features",
-    metadata={"project": "TaskManager", "phase": "planning"},
-    tags=["requirements", "planning", "web-app"]
-)
+state_manager.update_state(
+    project_name="TaskManager",
+    key="requirements",
+    value="Task management app with user auth and team features",
+    metadata={"phase": "planning", "type": "web-app"}
 
 # Store technical decisions
-await memory.store_memory(
-    key="tech_stack_decision",
-    content="Using React frontend, FastAPI backend, PostgreSQL database",
-    metadata={"project": "TaskManager", "phase": "architecture"},
-    tags=["architecture", "technology", "decisions"]
+state_manager.update_state(
+    project_name="TaskManager",
+    key="tech_stack",
+    value="Using React frontend, FastAPI backend, PostgreSQL database",
+    metadata={"phase": "architecture", "type": "decision"}
 )
 ```
 
 ### Retrieving Context
 
 ```python
-# Search for relevant context
-results = await memory.retrieve_memory(
-    query="authentication requirements",
-    limit=5,
-    similarity_threshold=0.7
-)
+# Retrieve project context
+state = state_manager.get_state("TaskManager")
 
-for result in results:
-    print(f"Content: {result.content}")
-    print(f"Similarity: {result.similarity_score}")
-    print(f"Tags: {result.tags}")
+# Access specific information
+requirements = state.get("requirements")
+tech_stack = state.get("tech_stack")
+
+# Get all project metadata
+metadata = state_manager.get_metadata("TaskManager")
+print(f"Project phase: {metadata.get('phase')}")
+print(f"Tech stack: {tech_stack}")
 ```
 
 ### Memory System Best Practices
@@ -754,24 +753,24 @@ cat mcp/configs/mcp_config.yaml
 coral config mcp --server github --permissions read,write
 ```
 
-#### Memory System Issues
+#### Project State Issues
 
-**Issue**: Memory system not initialized
+**Issue**: Project state not initialized
 ```bash
-# Solution: Set up memory system
-coral setup memory --type local
+# Solution: Initialize project state
+coral init --project MyProject
 
-# Check memory system status
-coral check --memory
+# Check project status
+coral status --project MyProject
 ```
 
-**Issue**: Poor memory retrieval results
+**Issue**: Lost project context
 ```bash
-# Solution: Adjust similarity threshold
-coral config memory --similarity-threshold 0.6
+# Solution: Check project state persistence
+coral config --project MyProject --persist true
 
-# Or use different embedding model
-coral config memory --embedding-model all-MiniLM-L6-v2
+# Or restore from backup
+coral restore --project MyProject --from backup/
 ```
 
 ### Getting Help

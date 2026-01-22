@@ -8,7 +8,6 @@ This document provides a comprehensive overview of CoralCollective's system arch
 - [Core Components](#core-components)
 - [Agent Architecture](#agent-architecture)
 - [Data Flow](#data-flow)
-- [Memory System Architecture](#memory-system-architecture)
 - [MCP Integration Architecture](#mcp-integration-architecture)
 - [Orchestration Patterns](#orchestration-patterns)
 - [Security Architecture](#security-architecture)
@@ -22,7 +21,7 @@ CoralCollective is a modular AI agent orchestration framework built on four foun
 1. **Documentation-First Development**: Requirements and specifications created before implementation
 2. **Specialized Agent Collaboration**: Domain experts working together in structured workflows  
 3. **Tool Integration**: Direct access to development tools through MCP protocol
-4. **Persistent Context**: Cross-session memory and knowledge management
+4. **Persistent Context**: Project state management and session tracking
 
 ### High-Level Architecture
 
@@ -56,18 +55,18 @@ CoralCollective is a modular AI agent orchestration framework built on four foun
         │                 │                 │
         ▼                 ▼                 ▼
 ┌─────────────┐  ┌─────────────────┐  ┌─────────────┐
-│   Memory    │  │   Workflow      │  │    Model    │
-│   System    │  │  Management     │  │ Optimization│
+│   Project   │  │   Workflow      │  │    Model    │
+│    State    │  │  Management     │  │ Optimization│
 └─────────────┘  └─────────────────┘  └─────────────┘
         │                 │                 │
         ▼                 ▼                 ▼
 ┌─────────────┐  ┌─────────────────┐  ┌─────────────┐
-│ • Vector    │  │ • State Mgmt    │  │ • Smart     │
-│   Database  │  │ • Handoffs      │  │   Selection │
-│ • Knowledge │  │ • Parallel      │  │ • Cost      │
-│   Graph     │  │   Execution     │  │   Reduction │
-│ • Context   │  │ • Dependencies  │  │ • Caching   │
-│   Retrieval │  │ • Validation    │  │   Strategy  │
+│ • Session   │  │ • State Mgmt    │  │ • Smart     │
+│   Tracking  │  │ • Handoffs      │  │   Selection │
+│ • Progress  │  │ • Parallel      │  │ • Cost      │
+│   Monitor   │  │   Execution     │  │   Reduction │
+│ • Export    │  │ • Dependencies  │  │ • Caching   │
+│   Support   │  │ • Validation    │  │   Strategy  │
 └─────────────┘  └─────────────────┘  └─────────────┘
 ```
 
@@ -208,17 +207,11 @@ Agent Hierarchy
 │   ├── Quality & Security
 │   │   ├── QA Testing
 │   │   ├── Security Specialist
-│   │   └── Performance Optimizer
+│   │   └── Performance Engineer
 │   └── Operations
 │       ├── DevOps Deployment
-│       ├── Database Administrator
-│       ├── Monitoring Specialist
-│       └── Cloud Architect
-│
-└── Assessment Agents (3)
-    ├── Code Reviewer
-    ├── Architecture Validator
-    └── Compliance Auditor
+│       ├── Database Specialist
+│       └── Site Reliability Engineer
 ```
 
 ### Agent Structure
@@ -230,7 +223,7 @@ Each agent follows a standardized structure:
 
 ## Metadata Section
 - name: Agent display name
-- category: core | specialist | assessment
+- category: core | specialist
 - capabilities: List of agent capabilities
 - dependencies: Required input from other agents
 - outputs: Expected deliverables
@@ -369,7 +362,7 @@ Technical Specification
 │  │ • Task      │───────▶│   Context Processor     │        │
 │  │ • Previous  │        │                         │        │
 │  │   Outputs   │        │ • Validation            │        │
-│  │ • Memory    │        │ • Enrichment            │        │
+│  │ • State     │        │ • Enrichment            │        │
 │  │ • Config    │        │ • Transformation        │        │
 │  └─────────────┘        │ • Optimization          │        │
 │                         └─────────────────────────┘        │
@@ -384,83 +377,6 @@ Technical Specification
 │  └─────────────┘        │ • Response Processing   │        │
 │                         └─────────────────────────┘        │
 └─────────────────────────────────────────────────────────────┘
-```
-
-## Memory System Architecture
-
-### Dual Architecture Design
-
-CoralCollective implements a dual-architecture memory system supporting both local and cloud deployments:
-
-```
-Memory System Architecture
-
-┌─────────────────────────────────────────────────────────────┐
-│                   Memory System                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Local Architecture          Cloud Architecture             │
-│  ┌─────────────────┐         ┌─────────────────┐           │
-│  │   ChromaDB      │         │   Pinecone      │           │
-│  │   (Vector DB)   │         │  (Vector DB)    │           │
-│  └─────────────────┘         └─────────────────┘           │
-│           │                           │                    │
-│           ▼                           ▼                    │
-│  ┌─────────────────┐         ┌─────────────────┐           │
-│  │   NetworkX      │         │    Neo4j        │           │
-│  │ (Knowledge      │         │ (Knowledge      │           │
-│  │   Graph)        │         │   Graph)        │           │
-│  └─────────────────┘         └─────────────────┘           │
-│           │                           │                    │
-│           └─────────┬─────────────────┘                    │
-│                     │                                      │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │         Unified Memory Interface                    │   │
-│  │                                                     │   │
-│  │ • Semantic Search      • Context Retrieval          │   │
-│  │ • Knowledge Graphs     • Cross-Session Storage      │   │
-│  │ • Vector Embeddings    • Relationship Mapping       │   │
-│  │ • Similarity Matching  • Intelligent Caching       │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Memory Components
-
-#### Vector Store
-- **Embedding Models**: Sentence transformers for semantic understanding
-- **Similarity Search**: Cosine similarity with configurable thresholds
-- **Efficient Indexing**: HNSW algorithm for fast retrieval
-- **Batch Operations**: Optimized bulk storage and retrieval
-
-#### Knowledge Graph
-- **Entity Recognition**: Automatic extraction of entities and relationships
-- **Graph Traversal**: Efficient path finding and relationship discovery
-- **Schema Evolution**: Dynamic schema adaptation
-- **Graph Analytics**: Centrality measures and cluster detection
-
-#### Context Management
-- **Session Persistence**: Cross-session context maintenance
-- **Context Windows**: Sliding window approach for large contexts
-- **Hierarchical Storage**: Project → Session → Agent → Task structure
-- **Automatic Summarization**: Context compression for efficiency
-
-### Memory Operations
-
-```python
-Memory Operation Flow
-
-Store Operation:
-Content → Embedding Generation → Vector Storage → Graph Update → Index Update
-
-Retrieve Operation:
-Query → Embedding Generation → Similarity Search → Graph Traversal → Ranking → Results
-
-Update Operation:
-Memory ID → Retrieve Current → Generate New Embedding → Update Vectors → Update Graph
-
-Delete Operation:
-Memory ID → Remove Vectors → Update Graph → Cleanup Indices
 ```
 
 ## MCP Integration Architecture
@@ -702,7 +618,7 @@ Security Layers
 │                    Service Layer                            │
 │ • Agent Permissions        • Resource Quotas               │
 │ • MCP Security            • API Rate Limiting               │
-│ • Memory Access Control   • Audit Logging                  │
+│ • Access Control          • Audit Logging                  │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
@@ -786,74 +702,46 @@ FROM base as production
 # Non-root user execution
 ```
 
-### Kubernetes Deployment
+### Docker Compose Deployment
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: coral-collective
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: coral-collective
-  template:
-    metadata:
-      labels:
-        app: coral-collective
-    spec:
-      containers:
-      - name: coral-collective
-        image: coral-collective:latest
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 1Gi
-        env:
-        - name: ENVIRONMENT
-          value: "production"
-        - name: LOG_LEVEL
-          value: "INFO"
-        healthCheck:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
+version: '3.8'
+services:
+  coral-collective:
+    build: .
+    image: coral-collective:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./projects:/app/projects
+      - ./config:/app/config
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - coral-network
+
+networks:
+  coral-network:
+    driver: bridge
 ```
 
-### Service Mesh Integration
+### Python Package Deployment
 
-```yaml
-# Istio configuration for microservices
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: coral-collective
-spec:
-  http:
-  - match:
-    - headers:
-        agent-type:
-          exact: core
-    route:
-    - destination:
-        host: coral-collective-core
-        port:
-          number: 8080
-  - match:
-    - headers:
-        agent-type:
-          exact: specialist
-    route:
-    - destination:
-        host: coral-collective-specialists
-        port:
-          number: 8080
+```bash
+# Install from PyPI
+pip install coral-collective
+
+# Install with optional dependencies
+pip install coral-collective[mcp,dev]
+
+# Local development installation
+pip install -e .
 ```
 
 ## Performance & Scalability
@@ -865,8 +753,7 @@ spec:
 # Agent pool scaling
 agent_pools = {
     "core": {"min": 1, "max": 3, "cpu_threshold": 70},
-    "specialist": {"min": 2, "max": 10, "cpu_threshold": 80},
-    "assessment": {"min": 1, "max": 5, "cpu_threshold": 60}
+    "specialist": {"min": 2, "max": 10, "cpu_threshold": 80}
 }
 
 # Load balancing strategy
@@ -939,43 +826,12 @@ async def execute_workflow(workflow_config):
     return results
 ```
 
-### Monitoring & Observability
-
-```python
-Observability Stack
-
-┌─────────────────────────────────────────────────────────────┐
-│                   Monitoring Layer                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Metrics Collection        Logging                          │
-│  ┌─────────────────┐       ┌─────────────────┐             │
-│  │ • Prometheus    │       │ • Structured    │             │
-│  │ • Custom        │       │   Logging       │             │
-│  │   Metrics       │       │ • ELK Stack     │             │
-│  │ • Performance   │       │ • Audit Trails  │             │
-│  │   KPIs          │       │ • Error         │             │
-│  └─────────────────┘       │   Tracking      │             │
-│                            └─────────────────┘             │
-│                                                             │
-│  Tracing                   Alerting                        │
-│  ┌─────────────────┐       ┌─────────────────┐             │
-│  │ • Distributed   │       │ • Threshold     │             │
-│  │   Tracing       │       │   Alerts        │             │
-│  │ • Request       │       │ • Anomaly       │             │
-│  │   Flows         │       │   Detection     │             │
-│  │ • Dependencies  │       │ • Escalation    │             │
-│  └─────────────────┘       └─────────────────┘             │
-└─────────────────────────────────────────────────────────────┘
-```
-
 ### Performance Metrics
 
 Key performance indicators:
 
 - **Agent Execution Time**: Average time per agent type
 - **Workflow Completion Time**: End-to-end workflow duration
-- **Memory Usage**: Peak and average memory consumption
 - **Token Usage**: AI model token consumption and costs
 - **Cache Hit Ratio**: Cache effectiveness metrics
 - **Error Rates**: Failure rates by component

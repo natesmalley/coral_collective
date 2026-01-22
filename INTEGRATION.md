@@ -1,585 +1,360 @@
 # CoralCollective Integration Guide
 
+This guide explains how to integrate CoralCollective into your projects and workflows.
+
 ## Table of Contents
-
-1. [Overview](#overview)
-2. [Quick Start](#quick-start)
-3. [Integration Methods](#integration-methods)
-   - [Python Interface](#python-interface)
-   - [Command-Line Interface](#command-line-interface)
-   - [Direct File Access](#direct-file-access)
-   - [Subagent Invocation](#subagent-invocation)
-4. [Usage Patterns](#usage-patterns)
-5. [Workflows](#workflows)
-6. [Shortcuts & Aliases](#shortcuts--aliases)
-7. [Context Management](#context-management)
-8. [MCP Integration](#mcp-integration)
-9. [Configuration](#configuration)
-10. [Advanced Usage](#advanced-usage)
-11. [Best Practices](#best-practices)
-12. [Troubleshooting](#troubleshooting)
-
-## Overview
-
-This guide explains how Claude (both Claude.ai and Claude Code) can directly interact with CoralCollective to access agent prompts, workflows, and orchestration capabilities. CoralCollective provides multiple integration methods from simple subagent invocation to full programmatic control.
+1. [Quick Start](#quick-start)
+2. [Integration Methods](#integration-methods)
+3. [Python Package Integration](#python-package-integration)
+4. [Docker Integration](#docker-integration)
+5. [Drop-In Integration](#drop-in-integration)
+6. [API Integration](#api-integration)
 
 ## Quick Start
 
-### Basic Subagent Invocation
+The fastest way to add CoralCollective to an existing project:
 
-The simplest way to use CoralCollective is through Claude's subagent notation:
+```bash
+# Download and run the drop-in installer
+curl -O https://raw.githubusercontent.com/coral-collective/coral-collective/main/coral_drop.sh
+bash coral_drop.sh
 
-```python
-# Simple task delegation
-@backend_developer "Create a REST API for user management"
-@frontend_developer "Build a React dashboard with charts"
-@qa_testing "Write comprehensive test suite"
-```
-
-### Chaining Multiple Agents
-
-```python
-# Sequential execution
-@chain [@architect, @backend, @frontend, @qa] "Build a todo application"
-
-# Workflow execution  
-@workflow full_stack "Create an e-commerce platform"
+# Use the coral command
+./coral run project_architect
 ```
 
 ## Integration Methods
 
-### Python Interface
+### 1. Python Package (Recommended)
 
-The primary entry point for programmatic interaction with CoralCollective.
-
-#### Core Interface (`claude_interface.py`)
-
-```python
-from claude_interface import ClaudeInterface
-
-# Initialize the interface
-coral = ClaudeInterface()
-
-# List all available agents
-agents = coral.list_agents()
-
-# Get a specific agent's prompt
-prompt = coral.get_agent_prompt('backend_developer', 'Create a REST API')
-
-# Get a complete workflow
-workflow = coral.get_workflow('full_stack_web')
-
-# Find agents by capability
-api_agents = coral.get_agent_by_capability('api')
-```
-
-#### Subagent Registry
-
-```python
-from subagent_registry import coral_subagents
-from subagent_registry import SubagentRegistry
-
-# Invoke a subagent
-result = coral_subagents('@backend_developer "Create REST API"')
-
-# Get help
-help_text = coral_subagents.help('@backend_developer')
-
-# Run a workflow
-results = coral_subagents.workflow('full_stack', 'Build todo app')
-
-# Access the registry directly
-registry = SubagentRegistry()
-
-# Find agents by capability
-api_agents = registry.get_agent_by_capability('api')
-
-# Create custom chain
-chain = registry.create_subagent_chain(['architect', 'backend', 'frontend'])
-results = chain("Build dashboard")
-```
-
-### Command-Line Interface
-
-Claude can execute shell commands to interact with CoralCollective:
+Install CoralCollective as a Python package:
 
 ```bash
-# List all agents
-python claude_interface.py list --json
+pip install coral-collective
 
-# Get a specific agent prompt
-python claude_interface.py get-prompt --agent backend_developer --task "Create user authentication"
-
-# Get workflow information
-python claude_interface.py workflow --workflow full_stack_web --json
-
-# Find agents with specific capabilities
-python claude_interface.py capability --capability api --json
-
-# Get agents by category
-python claude_interface.py category --category development --json
-
-# Subagent registry commands
-python subagent_registry.py list
-python subagent_registry.py invoke --agent backend_developer --task "Create API"
-python subagent_registry.py help --agent backend_developer
-python subagent_registry.py workflow --workflow full_stack --task "Build app"
+# With optional features
+pip install coral-collective[mcp,dev]
 ```
 
-### Direct File Access
-
-Claude can directly read agent prompts from the filesystem:
+Use in your Python code:
 
 ```python
-# Agent prompts are organized as:
-# - agents/core/project_architect.md
-# - agents/core/technical_writer.md
-# - agents/specialists/*.md
+from coral_collective import AgentRunner, ProjectManager
 
-# Example: Read backend developer prompt
-with open('agents/specialists/backend_developer.md', 'r') as f:
-    prompt = f.read()
+# Initialize runner
+runner = AgentRunner()
+
+# Run an agent
+result = runner.run_agent(
+    'backend_developer',
+    'Create user authentication API',
+    context={'tech_stack': ['Python', 'FastAPI']}
+)
+
+# Manage project state
+pm = ProjectManager()
+project = pm.create_project(
+    'my_app',
+    'web_application',
+    'E-commerce platform'
+)
 ```
 
-### Subagent Invocation
+### 2. Docker Integration
 
-CoralCollective agents are available as Claude subagents using @ notation:
+Run CoralCollective in a container:
 
-#### Direct Invocation
-```python
-@{agent_id} "{task}"
+```bash
+# Pull the image
+docker pull coralcollective/coral:latest
 
-# Examples:
-@backend_developer "Implement JWT authentication"
-@database_specialist "Design normalized schema for blog"
-@security_specialist "Audit authentication implementation"
+# Run interactively
+docker run -it --rm \
+  -v $(pwd):/workspace \
+  -e OPENAI_API_KEY=$OPENAI_API_KEY \
+  coralcollective/coral
+
+# Using docker-compose
+docker-compose up
 ```
 
-#### Capability-Based
-```python
-@do/{capability} "{task}"
+Docker Compose configuration:
 
-# Examples:
-@do/api "Design RESTful endpoints"
-@do/auth "Implement OAuth 2.0"
-@do/testing "Create integration tests"
+```yaml
+version: '3.8'
+services:
+  coral:
+    image: coralcollective/coral:latest
+    volumes:
+      - .:/workspace
+      - ./config:/app/config
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    stdin_open: true
+    tty: true
 ```
 
-#### Role-Based
-```python
-@role/{role_name} "{task}"
+### 3. Drop-In Integration
 
-# Examples:
-@role/architect "Design microservices architecture"
-@role/qa_testing "Validate user flows"
+Add CoralCollective to an existing project without modifying its structure:
+
+```bash
+# Run the drop-in script
+./coral_drop.sh
+
+# This creates:
+# - .coral/ directory for state and cache
+# - coral wrapper command
+# - .coralrc configuration file
 ```
 
-#### Category-Based
-```python
-@category/{category}/{agent} "{task}"
+The drop-in method is ideal for:
+- Existing projects that need AI assistance
+- Teams wanting to try CoralCollective without commitment
+- Projects with strict file structure requirements
 
-# Examples:
-@category/development/backend "Create API"
-@category/security/specialist "Security audit"
+### 4. Git Submodule
+
+Add as a git submodule:
+
+```bash
+git submodule add https://github.com/coral-collective/coral-collective.git
+git submodule update --init --recursive
+
+# Use from submodule
+python coral-collective/agent_runner.py
 ```
 
-## Usage Patterns
+## API Integration
 
-### Pattern 1: Sequential Agent Execution
+### REST API (Coming Soon)
 
-Claude can orchestrate multiple agents in sequence:
-
-```python
-from claude_interface import ClaudeInterface
-
-coral = ClaudeInterface()
-
-# Define the task
-task = "Build a task management application"
-
-# Get project template
-template = coral.get_project_template('full_stack_web')
-
-# Execute each agent in sequence
-for agent in template['sequence']:
-    agent_id = agent['id']
-    prompt_result = coral.get_agent_prompt(agent_id, task)
-    
-    # Claude processes the prompt and generates output
-    # Then passes context to next agent
-    task = f"Continue building based on previous work: {task}"
-```
-
-### Pattern 2: Capability-Based Selection
-
-Claude can select agents based on required capabilities:
+Future versions will include a REST API server:
 
 ```python
-# Find all agents that can work with APIs
-api_agents = coral.get_agent_by_capability('api')
+# Start API server
+coral serve --port 8080
 
-# Find all security-related agents
-security_agents = coral.get_category_agents('security')
-
-# Select the most appropriate agent
-for agent in api_agents:
-    if 'design' in agent['all_capabilities']:
-        # Use API Designer for API specification
-        prompt = coral.get_agent_prompt(agent['id'], task)
-```
-
-### Pattern 3: Workflow Automation
-
-Claude can follow predefined workflows:
-
-```python
-# Get a workflow definition
-workflow = coral.get_workflow('ai_application')
-
-# Process each phase
-for phase in workflow['phases']:
-    print(f"Phase: {phase['name']}")
-    for agent_id in phase['agents']:
-        prompt_result = coral.get_agent_prompt(agent_id, task)
-        # Process with Claude's capabilities
-```
-
-## Workflows
-
-### Full Stack Web Application
-```python
-@workflow full_stack "Build a task management app"
-# Automatically runs:
-# 1. @architect - System design
-# 2. @requirements - Documentation
-# 3. @backend - API implementation
-# 4. @frontend - UI development
-# 5. @db - Database setup
-# 6. @qa - Testing
-# 7. @security - Security audit
-# 8. @devops - Deployment
-# 9. @docs - User documentation
-```
-
-### API Service
-```python
-@workflow api_first "Create microservice API"
-# Runs: @architect → @api → @backend → @db → @qa → @devops
-```
-
-### AI-Powered Application
-```python
-@workflow ai_powered "Build ML-powered app"
-# Runs: @architect → @requirements → @ai → @backend → @frontend → @devops → @sre
-```
-
-## Shortcuts & Aliases
-
-Quick aliases for common agents:
-
-| Shortcut | Full Agent ID | Purpose |
-|----------|---------------|---------|
-| `@architect` | project_architect | System design & planning |
-| `@backend` | backend_developer | Server-side development |
-| `@frontend` | frontend_developer | UI/UX implementation |
-| `@fullstack` | full_stack_engineer | End-to-end development |
-| `@qa` | qa_testing | Testing & quality |
-| `@api` | api_designer | API specification |
-| `@db` | database_specialist | Database design |
-| `@ai` | ai_ml_specialist | AI/ML integration |
-| `@security` | security_specialist | Security implementation |
-| `@devops` | devops_deployment | Deployment & CI/CD |
-
-## Context Management
-
-### Context Passing Between Agents
-
-```python
-# Initial context
-context = {
-    "project": "E-commerce platform",
-    "tech_stack": ["Node.js", "React", "PostgreSQL"],
-    "requirements": ["User auth", "Product catalog", "Shopping cart"]
+# Make requests
+POST /api/agents/run
+{
+  "agent": "backend_developer",
+  "task": "Create REST API",
+  "context": {...}
 }
-
-# First agent
-result1 = @architect "Design the system" with context
-
-# Pass results to next agent
-context["architecture"] = result1["output"]
-result2 = @backend "Implement based on architecture" with context
 ```
 
-### Context Preservation
+### Python API
 
-Pass context between agents programmatically:
+Direct Python integration:
 
 ```python
-context = {"task": initial_task, "completed": [], "outputs": {}}
+from coral_collective import AgentRunner
+from coral_collective.tools.project_state import ProjectStateManager
 
-for agent_id in agent_sequence:
-    prompt = coral.get_agent_prompt(agent_id, json.dumps(context))
-    # Process and update context
-    context["completed"].append(agent_id)
+class MyApplication:
+    def __init__(self):
+        self.coral = AgentRunner()
+        self.state = ProjectStateManager()
+    
+    def generate_code(self, requirements):
+        # Run architect first
+        arch_result = self.coral.run_agent(
+            'project_architect',
+            requirements
+        )
+        
+        # Save state
+        self.state.save_state(
+            'my_project',
+            {'architecture': arch_result.output}
+        )
+        
+        # Run implementation agents
+        backend = self.coral.run_agent(
+            'backend_developer',
+            'Implement based on architecture',
+            context=arch_result.context
+        )
+        
+        return backend.output
 ```
 
-### Auto-Chaining
+## Environment Configuration
 
-Certain agents automatically suggest next agents:
+### Required Environment Variables
 
-```python
-# After @project_architect
-Suggested: [@technical_writer_phase1, @api_designer, @database_specialist]
+```bash
+# AI Model API Keys (at least one required)
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+GOOGLE_API_KEY=...
 
-# After @backend_developer  
-Suggested: [@frontend_developer, @database_specialist, @qa_testing]
-
-# After @qa_testing
-Suggested: [@devops_deployment, @performance_engineer]
+# Optional Configuration
+CORAL_MODEL_PROVIDER=openai  # or anthropic, google
+CORAL_MODEL_DEFAULT=gpt-4
+CORAL_MCP_ENABLED=false
 ```
+
+### Configuration Files
+
+`.coralrc` - Project-specific settings:
+```bash
+CORAL_HOME=.coral
+CORAL_PYTHON=python3
+CORAL_MODEL_PROVIDER=openai
+```
+
+`config/agents.yaml` - Agent definitions
+`config/model_assignments_2026.yaml` - Model routing
 
 ## MCP Integration
 
-When MCP (Model Context Protocol) is enabled, Claude can directly execute actions through the agents:
+Enable Model Context Protocol for tool access:
 
 ```python
-from mcp.mcp_client import MCPClient
-from claude_interface import ClaudeInterface
+from coral_collective import AgentRunner
 
-# Initialize both interfaces
-coral = ClaudeInterface()
-mcp = MCPClient()
+# Enable MCP
+runner = AgentRunner(mcp_enabled=True)
 
-# Get agent and its MCP permissions
-agent_id = 'backend_developer'
-agent_prompt = coral.get_agent_prompt(agent_id, task)
-agent_tools = mcp.get_tools_for_agent(agent_id)
-
-# Claude can now use both the prompt and tools
-# to directly implement the solution
+# Agents can now use:
+# - GitHub operations
+# - Docker management  
+# - Database queries
+# - File system access (sandboxed)
 ```
 
-## Configuration
+## Workflow Integration
 
-The integration uses `claude_code_agents.json` for configuration:
+### Sequential Workflow
 
-```json
-{
-  "agents": {
-    "agent_id": {
-      "name": "Agent Name",
-      "category": "category",
-      "description": "What the agent does",
-      "prompt_path": "path/to/prompt.md",
-      "capabilities": ["cap1", "cap2"]
-    }
-  },
-  "workflows": {
-    "workflow_id": {
-      "name": "Workflow Name",
-      "phases": [...]
-    }
-  }
-}
-```
-
-## Advanced Usage
-
-### Custom Chains
 ```python
-# Define custom sequence
-my_chain = [@architect, @api, @backend, @qa]
-@chain my_chain "Build REST service"
-```
+from coral_collective import AgentRunner
 
-### Conditional Agents
-```python
-# Use different agents based on requirements
-if "mobile" in requirements:
-    @mobile_developer "Build mobile app"
-else:
-    @frontend_developer "Build web app"
+runner = AgentRunner()
+
+# Define workflow
+workflow = [
+    ('project_architect', 'Design e-commerce platform'),
+    ('backend_developer', 'Implement API'),
+    ('frontend_developer', 'Create UI'),
+    ('qa_testing', 'Write tests'),
+    ('devops_deployment', 'Deploy to cloud')
+]
+
+# Execute workflow
+results = []
+context = {}
+for agent, task in workflow:
+    result = runner.run_agent(agent, task, context)
+    results.append(result)
+    context = result.context
 ```
 
 ### Parallel Execution
+
 ```python
-# Run multiple agents for different components
-@parallel [
-    @backend "Create API",
-    @frontend "Build UI",
-    @mobile "Create mobile app"
-] "Multi-platform application"
+import asyncio
+from coral_collective import AgentRunner
+
+async def parallel_development():
+    runner = AgentRunner()
+    
+    # Run backend and frontend in parallel
+    tasks = [
+        runner.run_agent_async('backend_developer', 'Create API'),
+        runner.run_agent_async('frontend_developer', 'Build UI'),
+        runner.run_agent_async('database_specialist', 'Design schema')
+    ]
+    
+    results = await asyncio.gather(*tasks)
+    return results
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: AI-Assisted Development
+on: [push, pull_request]
+
+jobs:
+  coral-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup CoralCollective
+        run: |
+          pip install coral-collective
+          
+      - name: Run Architecture Review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          coral run architecture_compliance_auditor \
+            --task "Review architecture changes"
+            
+      - name: Generate Tests
+        run: |
+          coral run qa_testing \
+            --task "Generate unit tests for changed files"
+```
+
+### GitLab CI
+
+```yaml
+coral-assist:
+  image: coralcollective/coral:latest
+  script:
+    - coral run security_specialist --task "Security audit"
+    - coral run performance_engineer --task "Performance review"
+  variables:
+    OPENAI_API_KEY: $OPENAI_API_KEY
 ```
 
 ## Best Practices
 
-### 1. Start with Architecture
-Always begin complex projects with:
-```python
-@architect "Design the system"
-```
-
-### 2. Use Appropriate Specialists
-Match the agent to the task:
-- `@backend` for APIs and server logic
-- `@frontend` for UI/UX
-- `@db` for database design
-- `@security` for security concerns
-- `@qa` for testing
-
-### 3. Follow the Workflow
-For complete projects, use workflows:
-```python
-@workflow full_stack "Your project description"
-```
-
-### 4. Error Handling
-Always check for agent availability:
-
-```python
-result = coral.get_agent_prompt(agent_id, task)
-if result['status'] == 'error':
-    # Handle missing agent
-    print(f"Agent not found: {result['message']}")
-    # Use alternative agent
-```
-
-### 5. Capability Matching
-Match agents to requirements:
-
-```python
-required_capabilities = ['api', 'auth', 'database']
-suitable_agents = []
-
-for capability in required_capabilities:
-    agents = coral.get_agent_by_capability(capability)
-    suitable_agents.extend(agents)
-
-# Select best agent based on multiple capabilities
-```
-
-### 6. Validate with QA
-Always include testing:
-```python
-@qa "Test the implementation"
-```
+1. **State Management**: Always save project state between agent runs
+2. **Context Passing**: Pass context between agents for continuity
+3. **Model Selection**: Use appropriate models for each agent (see model_assignments_2026.yaml)
+4. **Error Handling**: Wrap agent calls in try-catch blocks
+5. **Rate Limiting**: Implement rate limiting for API calls
+6. **Caching**: Cache agent outputs when possible
+7. **Security**: Never commit API keys; use environment variables
 
 ## Troubleshooting
 
-### Common Issues and Solutions
+### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| Agent not found | Check agent_id matches JSON config |
-| Prompt file missing | Verify prompt_path in configuration |
-| No suitable agent | Use capability search to find alternatives |
-| Workflow fails | Check all agents in sequence exist |
-
-### Error Handling for Subagents
-
-If a subagent is not found:
+**Import Errors**
 ```python
-result = @unknown_agent "Task"
-# Returns: {
-#   "status": "error",
-#   "message": "Subagent unknown_agent not found",
-#   "available_subagents": [...]
-# }
+# If imports fail, add to Python path
+import sys
+sys.path.append('/path/to/coral_collective')
 ```
 
-## Available Methods
-
-### Core Methods
-
-| Method | Description | Returns |
-|--------|-------------|---------|
-| `list_agents()` | Get all available agents | Dict of agents with metadata |
-| `get_agent_prompt(agent_id, task)` | Get prompt for specific agent | Prompt text and metadata |
-| `get_workflow(workflow_type)` | Get workflow definition | Phases and agent sequences |
-| `get_project_template(template_name)` | Get project template | Ordered agent sequence |
-
-### Discovery Methods
-
-| Method | Description | Returns |
-|--------|-------------|---------|
-| `get_agent_by_capability(capability)` | Find agents with capability | List of matching agents |
-| `get_category_agents(category)` | Get agents in category | List of category agents |
-| `get_recommended_next_agents(agent)` | Get next agent suggestions | List of agent IDs |
-
-### Execution Methods
-
-| Method | Description | Returns |
-|--------|-------------|---------|
-| `execute_agent_sequence(agents, task)` | Run multiple agents | List of results |
-
-## Usage Examples by Task Type
-
-### Building a New Application
-```python
-# Start with architecture
-@architect "Design a social media platform with real-time features"
-
-# Then implementation
-@backend "Implement the API based on the architecture"
-@frontend "Build the UI components"
-@db "Create the database schema"
-
-# Quality and deployment
-@qa "Write tests for all features"
-@security "Audit the implementation"
-@devops "Deploy to production"
+**API Key Issues**
+```bash
+# Check if keys are set
+python -c "import os; print('Key set:', bool(os.getenv('OPENAI_API_KEY')))"
 ```
 
-### Adding Features
-```python
-# For a new feature
-@architect "Design notification system"
-@backend "Add notification endpoints"
-@frontend "Create notification UI"
-@qa "Test notification flow"
+**Permission Errors**
+```bash
+# Make scripts executable
+chmod +x coral coral_drop.sh start.sh
 ```
 
-### Fixing Issues
-```python
-# Performance issues
-@performance_engineer "Identify bottlenecks in API"
-@backend "Optimize based on performance analysis"
+## Support
 
-# Security issues
-@security "Audit authentication system"
-@backend "Fix security vulnerabilities"
-```
+- GitHub Issues: https://github.com/coral-collective/coral-collective/issues
+- Documentation: https://coral-collective.dev/docs
+- Discord: https://discord.gg/coral-collective
 
-### Documentation
-```python
-# Technical documentation
-@technical_writer_phase1 "Create API documentation"
+## License
 
-# User documentation
-@technical_writer_phase2 "Write user guides"
-```
-
-## Extending the Integration
-
-To add new capabilities:
-
-1. **Add new methods** to `ClaudeInterface` class
-2. **Create new workflows** in `claude_code_agents.json`
-3. **Add MCP tools** for direct execution
-4. **Create custom agents** in `agents/` directory
-
-## Summary
-
-CoralCollective integration provides Claude with:
-
-- **21+ specialized agents** for different development tasks
-- **Multiple integration methods** (subagents, Python API, CLI)
-- **Simple @ notation** for invocation
-- **Workflow templates** for complete projects
-- **Context passing** between agents
-- **Auto-chaining** for sequential tasks
-- **Capability-based** agent discovery
-- **MCP tool integration** for actions
-- **Flexible discovery** of agents by capability
-
-This enables Claude to leverage specialized expertise for any software development task, from architecture to deployment, through both simple invocation and complex orchestration patterns.
+MIT License - See LICENSE file for details

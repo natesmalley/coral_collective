@@ -18,13 +18,8 @@ from rich.table import Table
 from rich.prompt import Prompt, IntPrompt, Confirm
 from rich.panel import Panel
 from rich.markdown import Markdown
-# Import from package or local
-try:
-    from coral_collective.tools.feedback_collector import FeedbackCollector
-    from coral_collective.tools.project_state import ProjectStateManager
-except ImportError:
-    from tools.feedback_collector import FeedbackCollector
-    from tools.project_state import ProjectStateManager
+from tools.feedback_collector import FeedbackCollector
+from tools.project_state import ProjectStateManager
 
 console = Console()
 
@@ -33,12 +28,8 @@ MCP_AVAILABLE = False
 mcp_client = None
 try:
     sys.path.append(str(Path(__file__).parent / 'mcp'))
-    try:
-        from coral_collective.mcp.mcp_client import MCPClient
-        from coral_collective.tools.agent_mcp_bridge import AgentMCPBridge, MCPToolsPromptGenerator
-    except ImportError:
-        from mcp_client import MCPClient
-        from tools.agent_mcp_bridge import AgentMCPBridge, MCPToolsPromptGenerator
+    from mcp_client import MCPClient
+    from tools.agent_mcp_bridge import AgentMCPBridge, MCPToolsPromptGenerator
     MCP_AVAILABLE = True
 except ImportError:
     pass

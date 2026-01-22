@@ -204,7 +204,7 @@ group = [
 
 ### Coordination Files
 All parallel agents use:
-- **scratchpad.md** - Shared working memory
+- **scratchpad.md** - Shared working document
 - **activity_tracker.md** - Activity log
 - **project_state.yaml** - Machine-readable state
 
@@ -259,7 +259,7 @@ custom_plan = [
     # Phase 1: Research (parallel)
     [
         ParallelTask("ai-ml-specialist", "Research ML options"),
-        ParallelTask("security-specialist", "Security assessment"),
+        ParallelTask("security-specialist", "Security review"),
     ],
     # Phase 2: Design (parallel)
     [

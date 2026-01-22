@@ -1,16 +1,14 @@
 #!/bin/bash
 set -e
 
-# Deployment script for CoralCollective
-# Supports multiple deployment targets: Docker, Kubernetes, local
+# Simplified deployment script for CoralCollective
+# Supports Docker and local deployment
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Configuration
-DEFAULT_NAMESPACE="coral-collective"
 DEFAULT_ENVIRONMENT="production"
-DEFAULT_REPLICAS="2"
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,47 +26,40 @@ log_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Show usage
-show_usage() {
+# Usage function
+usage() {
     cat << EOF
-CoralCollective Deployment Script
-
 Usage: $0 [COMMAND] [OPTIONS]
 
 Commands:
   docker          Deploy using Docker Compose
-  k8s             Deploy to Kubernetes
-  local           Deploy locally with virtual environment
-  build           Build Docker images
-  test            Run deployment tests
-  clean           Clean up deployment artifacts
-
+  local           Run locally with Python
+  build           Build Docker image only
+  
 Options:
-  -e, --environment ENV    Deployment environment (dev, staging, production)
-  -n, --namespace NS       Kubernetes namespace (default: coral-collective)
-  -r, --replicas NUM       Number of replicas (default: 2)
-  -i, --image TAG          Docker image tag (default: latest)
-  -f, --config-file FILE   Override config file
-  -h, --help               Show this help message
+  -e, --env       Environment (development|staging|production)
+  -t, --tag       Docker image tag (default: latest)
+  -h, --help      Show this help message
 
 Examples:
-  $0 docker -e production
-  $0 k8s -n my-namespace -r 3
-  $0 build -i v1.0.0
+  $0 docker
   $0 local -e development
+  $0 build -t v1.0.0
+
 EOF
+    exit 0
 }
 
-# Check prerequisites
-check_prerequisites() {
+# Check dependencies
+check_dependencies() {
     local target=$1
     
     case $target in
@@ -78,18 +69,10 @@ check_prerequisites() {
                 exit 1
             fi
             if ! command -v docker-compose &> /dev/null; then
-                log_error "Docker Compose is not installed"
-                exit 1
-            fi
-            ;;
-        k8s)
-            if ! command -v kubectl &> /dev/null; then
-                log_error "kubectl is not installed"
-                exit 1
-            fi
-            if ! kubectl cluster-info &> /dev/null; then
-                log_error "Cannot connect to Kubernetes cluster"
-                exit 1
+                log_warning "docker-compose not found, using docker compose"
+                DOCKER_COMPOSE="docker compose"
+            else
+                DOCKER_COMPOSE="docker-compose"
             fi
             ;;
         local)
@@ -101,293 +84,149 @@ check_prerequisites() {
     esac
 }
 
-# Build Docker images
-build_images() {
-    local tag=${1:-latest}
+# Load environment variables
+load_env() {
+    local env_file=".env"
     
-    log_info "Building Docker images with tag: $tag"
+    if [[ "$ENVIRONMENT" == "development" ]]; then
+        env_file=".env.development"
+    elif [[ "$ENVIRONMENT" == "staging" ]]; then
+        env_file=".env.staging"
+    fi
     
-    cd "$PROJECT_ROOT"
-    
-    # Build main image
-    docker build -t coralcollective/coral-collective:$tag .
-    
-    # Build development image
-    docker build --target development -t coralcollective/coral-collective:$tag-dev .
-    
-    # Build memory-enabled image
-    docker build --target memory -t coralcollective/coral-collective:$tag-memory .
-    
-    log_success "Docker images built successfully"
+    if [[ -f "$PROJECT_ROOT/$env_file" ]]; then
+        log_info "Loading environment from $env_file"
+        export $(grep -v '^#' "$PROJECT_ROOT/$env_file" | xargs)
+    else
+        log_warning "Environment file $env_file not found"
+    fi
 }
 
-# Deploy with Docker Compose
+# Deploy with Docker
 deploy_docker() {
-    local environment=${1:-production}
-    
-    log_info "Deploying with Docker Compose (environment: $environment)"
+    log_info "Deploying with Docker..."
     
     cd "$PROJECT_ROOT"
     
-    # Create environment file if it doesn't exist
-    if [ ! -f .env ]; then
-        log_warn ".env file not found, creating from template"
-        cat > .env << EOF
-# CoralCollective Environment Configuration
-CORAL_ENV=$environment
-CORAL_DEBUG=false
-POSTGRES_USER=coral
-POSTGRES_PASSWORD=coral
-POSTGRES_DB=coral_db
-# Add your API keys here
-GITHUB_TOKEN=
-CLAUDE_API_KEY=
-OPENAI_API_KEY=
-EOF
+    # Load environment
+    load_env
+    
+    # Build image
+    log_info "Building Docker image..."
+    docker build -t coral-collective:$TAG .
+    
+    # Run with docker-compose
+    log_info "Starting containers..."
+    $DOCKER_COMPOSE up -d
+    
+    # Wait for health check
+    log_info "Waiting for services to be healthy..."
+    sleep 5
+    
+    if docker ps | grep -q coral-collective; then
+        log_success "CoralCollective deployed successfully!"
+        log_info "Access the application at http://localhost:8000"
+    else
+        log_error "Deployment failed. Check logs with: docker logs coral-collective"
+        exit 1
     fi
-    
-    # Choose compose file based on environment
-    local compose_file="docker-compose.yml"
-    local profiles=""
-    
-    case $environment in
-        development)
-            profiles="--profile development"
-            ;;
-        production)
-            profiles="--profile production"
-            ;;
-        memory)
-            profiles="--profile memory"
-            ;;
-    esac
-    
-    # Deploy
-    docker-compose -f $compose_file $profiles up -d
-    
-    log_success "Docker deployment completed"
-    log_info "Services available at:"
-    log_info "  - CoralCollective: http://localhost:8000"
-    log_info "  - PostgreSQL: localhost:5432"
-    log_info "  - ChromaDB: http://localhost:8001"
-}
-
-# Deploy to Kubernetes
-deploy_k8s() {
-    local namespace=${1:-$DEFAULT_NAMESPACE}
-    local replicas=${2:-$DEFAULT_REPLICAS}
-    local image_tag=${3:-latest}
-    
-    log_info "Deploying to Kubernetes (namespace: $namespace, replicas: $replicas)"
-    
-    cd "$PROJECT_ROOT"
-    
-    # Create namespace if it doesn't exist
-    kubectl create namespace $namespace --dry-run=client -o yaml | kubectl apply -f -
-    
-    # Apply Kubernetes manifests
-    log_info "Applying Kubernetes manifests..."
-    
-    # Replace placeholders in manifests
-    local temp_dir=$(mktemp -d)
-    trap "rm -rf $temp_dir" EXIT
-    
-    # Copy and modify manifests
-    cp -r k8s/* $temp_dir/
-    
-    # Replace image tags
-    find $temp_dir -name "*.yaml" -exec sed -i.bak "s/:latest/:$image_tag/g" {} \;
-    
-    # Replace namespace
-    find $temp_dir -name "*.yaml" -exec sed -i.bak "s/namespace: coral-collective/namespace: $namespace/g" {} \;
-    
-    # Replace replicas
-    sed -i.bak "s/replicas: 2/replicas: $replicas/g" $temp_dir/deployment.yaml
-    
-    # Apply manifests in order
-    kubectl apply -f $temp_dir/namespace.yaml
-    kubectl apply -f $temp_dir/pvc.yaml
-    kubectl apply -f $temp_dir/configmap.yaml
-    kubectl apply -f $temp_dir/secrets.yaml
-    kubectl apply -f $temp_dir/deployment.yaml
-    kubectl apply -f $temp_dir/service.yaml
-    kubectl apply -f $temp_dir/hpa.yaml
-    
-    # Apply ingress if available
-    if [ -f $temp_dir/ingress.yaml ]; then
-        kubectl apply -f $temp_dir/ingress.yaml
-    fi
-    
-    # Wait for deployment to be ready
-    log_info "Waiting for deployment to be ready..."
-    kubectl wait --for=condition=available --timeout=300s deployment/coral-collective -n $namespace
-    
-    log_success "Kubernetes deployment completed"
-    
-    # Show status
-    kubectl get pods -n $namespace
-    kubectl get services -n $namespace
 }
 
 # Deploy locally
 deploy_local() {
-    local environment=${1:-development}
-    
-    log_info "Deploying locally (environment: $environment)"
+    log_info "Running locally..."
     
     cd "$PROJECT_ROOT"
     
+    # Load environment
+    load_env
+    
     # Create virtual environment if it doesn't exist
-    if [ ! -d "venv" ]; then
+    if [[ ! -d "venv" ]]; then
         log_info "Creating virtual environment..."
         python3 -m venv venv
     fi
     
     # Activate virtual environment
+    log_info "Activating virtual environment..."
     source venv/bin/activate
     
     # Install dependencies
     log_info "Installing dependencies..."
-    pip install --upgrade pip setuptools wheel
-    pip install -e .[all]
+    pip install -r requirements.txt
     
-    # Set environment variables
-    export CORAL_ENV=$environment
-    export CORAL_DEBUG=true
-    
-    log_success "Local deployment completed"
-    log_info "Virtual environment activated. Run 'coral --help' to get started."
+    # Run the application
+    log_info "Starting CoralCollective..."
+    python agent_runner.py
 }
 
-# Run deployment tests
-run_tests() {
-    log_info "Running deployment tests..."
+# Build Docker image
+build_docker() {
+    log_info "Building Docker image..."
     
     cd "$PROJECT_ROOT"
     
-    # Test Docker images
-    if command -v docker &> /dev/null; then
-        log_info "Testing Docker images..."
-        docker run --rm coralcollective/coral-collective:latest coral --help
-    fi
+    docker build -t coral-collective:$TAG .
     
-    # Test Kubernetes deployment
-    if command -v kubectl &> /dev/null && kubectl cluster-info &> /dev/null; then
-        log_info "Testing Kubernetes deployment..."
-        kubectl run coral-test --image=coralcollective/coral-collective:latest --rm -it --restart=Never -- coral --help
-    fi
-    
-    log_success "Deployment tests completed"
+    log_success "Docker image built: coral-collective:$TAG"
 }
 
-# Clean up deployment artifacts
-clean_up() {
-    log_info "Cleaning up deployment artifacts..."
-    
-    cd "$PROJECT_ROOT"
-    
-    # Clean Docker
-    if command -v docker &> /dev/null; then
-        docker system prune -f
-        docker volume prune -f
-    fi
-    
-    # Clean local artifacts
-    rm -rf build/ dist/ *.egg-info/
-    find . -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
-    find . -name "*.pyc" -delete
-    
-    log_success "Cleanup completed"
-}
-
-# Parse command line arguments
-parse_args() {
-    local command=""
-    local environment="$DEFAULT_ENVIRONMENT"
-    local namespace="$DEFAULT_NAMESPACE"
-    local replicas="$DEFAULT_REPLICAS"
-    local image_tag="latest"
-    local config_file=""
+# Main script
+main() {
+    # Parse command line arguments
+    COMMAND=""
+    ENVIRONMENT="$DEFAULT_ENVIRONMENT"
+    TAG="latest"
     
     while [[ $# -gt 0 ]]; do
         case $1 in
-            docker|k8s|local|build|test|clean)
-                command="$1"
+            docker|local|build)
+                COMMAND=$1
                 shift
                 ;;
-            -e|--environment)
-                environment="$2"
+            -e|--env)
+                ENVIRONMENT="$2"
                 shift 2
                 ;;
-            -n|--namespace)
-                namespace="$2"
-                shift 2
-                ;;
-            -r|--replicas)
-                replicas="$2"
-                shift 2
-                ;;
-            -i|--image)
-                image_tag="$2"
-                shift 2
-                ;;
-            -f|--config-file)
-                config_file="$2"
+            -t|--tag)
+                TAG="$2"
                 shift 2
                 ;;
             -h|--help)
-                show_usage
-                exit 0
+                usage
                 ;;
             *)
                 log_error "Unknown option: $1"
-                show_usage
-                exit 1
+                usage
                 ;;
         esac
     done
     
+    # Check if command is provided
+    if [[ -z "$COMMAND" ]]; then
+        log_error "No command specified"
+        usage
+    fi
+    
+    # Check dependencies
+    check_dependencies $COMMAND
+    
     # Execute command
-    case $command in
+    case $COMMAND in
         docker)
-            check_prerequisites docker
-            deploy_docker $environment
-            ;;
-        k8s)
-            check_prerequisites k8s
-            deploy_k8s $namespace $replicas $image_tag
+            deploy_docker
             ;;
         local)
-            check_prerequisites local
-            deploy_local $environment
+            deploy_local
             ;;
         build)
-            check_prerequisites docker
-            build_images $image_tag
-            ;;
-        test)
-            run_tests
-            ;;
-        clean)
-            clean_up
-            ;;
-        "")
-            log_error "No command specified"
-            show_usage
-            exit 1
+            build_docker
             ;;
         *)
-            log_error "Unknown command: $command"
-            show_usage
-            exit 1
+            log_error "Unknown command: $COMMAND"
+            usage
             ;;
     esac
-}
-
-# Main function
-main() {
-    log_info "CoralCollective Deployment Script"
-    parse_args "$@"
 }
 
 # Run main function

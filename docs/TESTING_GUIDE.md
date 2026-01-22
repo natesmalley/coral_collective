@@ -40,7 +40,7 @@ tests/
 ├── unit/                       # Unit tests (80ms max execution)
 │   ├── test_agents.py         # Agent system tests
 │   ├── test_agent_runner.py   # Agent execution tests
-│   ├── test_memory_system.py  # Memory system tests
+│   ├── test_project_state.py  # Project state tests
 │   ├── test_mcp_client.py     # MCP integration tests
 │   ├── test_project_manager.py # Project management tests
 │   └── test_tools.py          # Utility tools tests
@@ -48,7 +48,7 @@ tests/
 │   ├── test_agent_handoffs.py # Agent transition tests
 │   ├── test_workflows.py      # Complete workflow tests
 │   ├── test_mcp_integration.py # MCP server integration
-│   └── test_memory_integration.py # Memory with agents
+│   └── test_state_integration.py # State with agents
 ├── e2e/                       # End-to-end tests (30s max execution)
 │   ├── test_full_pipeline.py  # Complete project lifecycle
 │   ├── test_cli_commands.py   # CLI interface tests
@@ -154,7 +154,7 @@ pytest -m "not slow"
 **Key Test Files**:
 - `test_agents.py`: Agent configuration and prompt loading
 - `test_agent_runner.py`: Agent execution engine
-- `test_memory_system.py`: Memory operations
+- `test_project_state.py`: Project state operations
 - `test_mcp_client.py`: MCP tool integration
 - `test_project_manager.py`: Project state management
 
@@ -171,7 +171,7 @@ pytest -m "not slow"
 **Key Test Files**:
 - `test_agent_handoffs.py`: Agent transition workflows
 - `test_workflows.py`: Multi-agent orchestration
-- `test_memory_integration.py`: Memory system with agents
+- `test_state_integration.py`: State management with agents
 - `test_mcp_integration.py`: MCP tools in workflows
 
 ### End-to-End Tests (`pytest -m e2e`)
@@ -201,7 +201,7 @@ pytest -m "not slow"
 
 **Thresholds**:
 - Agent execution: <500ms average
-- Memory operations: <100ms average
+- State operations: <100ms average
 - Search operations: <1000ms average
 - CLI commands: <2000ms average
 
@@ -232,13 +232,13 @@ def test_agent_execution_success():
 Leverage provided fixtures for consistent test setup:
 
 ```python
-def test_with_memory_system(mock_memory_system, sample_memory_items):
-    # Use pre-configured mock memory system
-    memory_system = mock_memory_system
+def test_with_state_manager(mock_state_manager, sample_states):
+    # Use pre-configured mock state manager
+    state_manager = mock_state_manager
     
-    # Add sample memories
-    for memory in sample_memory_items:
-        memory_system.memories.append(memory)
+    # Add sample states
+    for state in sample_states:
+        state_manager.states.append(state)
     
     # Test memory operations
     results = await memory_system.search_memories("API development")

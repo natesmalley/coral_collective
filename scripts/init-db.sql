@@ -48,13 +48,13 @@ CREATE TABLE IF NOT EXISTS feedback (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Memory chunks table (for vector storage metadata)
-CREATE TABLE IF NOT EXISTS memory_chunks (
+-- Project artifacts table
+CREATE TABLE IF NOT EXISTS project_artifacts (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    chunk_type VARCHAR(50) NOT NULL,
+    artifact_type VARCHAR(50) NOT NULL,
     metadata JSONB,
-    vector_id VARCHAR(255),  -- ChromaDB vector ID
+    file_path VARCHAR(500),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -63,8 +63,8 @@ CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
 CREATE INDEX IF NOT EXISTS idx_agent_sessions_project_id ON agent_sessions(project_id);
 CREATE INDEX IF NOT EXISTS idx_agent_sessions_agent_type ON agent_sessions(agent_type);
 CREATE INDEX IF NOT EXISTS idx_feedback_session_id ON feedback(session_id);
-CREATE INDEX IF NOT EXISTS idx_memory_chunks_project_id ON memory_chunks(project_id);
-CREATE INDEX IF NOT EXISTS idx_memory_chunks_type ON memory_chunks(chunk_type);
+CREATE INDEX IF NOT EXISTS idx_project_artifacts_project_id ON project_artifacts(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_artifacts_type ON project_artifacts(artifact_type);
 
 -- Functions for updating timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()

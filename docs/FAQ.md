@@ -5,7 +5,7 @@
 1. [Getting Started](#getting-started)
 2. [Installation & Setup](#installation--setup)
 3. [Using Agents](#using-agents)
-4. [Memory System](#memory-system)
+4. [Project State Management](#project-state-management)
 5. [MCP Integration](#mcp-integration)
 6. [Development & Contributing](#development--contributing)
 7. [Troubleshooting](#troubleshooting)
@@ -30,7 +30,7 @@ A: Key differences:
 - **Documentation-first workflow** ensuring quality
 - **Structured handoffs** between agents with context preservation
 - **MCP integration** for direct tool access (GitHub, databases, Docker, etc.)
-- **Memory system** for cross-session context
+- **Project state management** for tracking progress
 - **Production-ready** with comprehensive testing and deployment
 
 **Q: Who should use CoralCollective?**
@@ -132,7 +132,7 @@ A: Multiple options for different use cases:
 
 A: Depends on your needs:
 
-- `coral-collective[memory]`: Advanced memory system with ChromaDB
+- `coral-collective[dev]`: Development and testing tools
 - `coral-collective[mcp]`: MCP integration for direct tool access
 - `coral-collective[dev]`: Development tools (testing, linting)
 - `coral-collective[all]`: Everything (recommended)
@@ -188,7 +188,7 @@ A: Through structured handoff protocols:
 3. **Next Agent Recommendation**: Who should work next and why
 4. **Copy-paste Prompts**: Ready-to-use prompts for the next agent
 
-Plus automatic context preservation with the memory system.
+Plus automatic context preservation with project state tracking.
 
 ### Agent Customization
 
@@ -223,7 +223,7 @@ context = {
         'backend': 'Python + FastAPI',
         'frontend': 'Vue.js + TypeScript', 
         'database': 'PostgreSQL',
-        'deployment': 'Docker + Kubernetes'
+        'deployment': 'Docker Compose'
     }
 }
 
@@ -258,17 +258,17 @@ A: Multiple ways:
 
 A: For basic agent prompts: **No** - Claude can directly read agent markdown files
 
-For full functionality (MCP, memory, context): **Yes** - install CoralCollective
+For full functionality (MCP, state tracking): **Yes** - install CoralCollective
 
 ---
 
-## Memory System
+## Project State Management
 
-### Memory Basics
+### State Basics
 
-**Q: What is the memory system and why do I need it?**
+**Q: What is project state management and why do I need it?**
 
-A: The memory system provides:
+A: Project state management provides:
 
 - **Cross-session context**: Agents remember previous work
 - **Project knowledge**: Accumulated understanding over time

@@ -45,15 +45,6 @@ INSTALL_REQUIRES = [
 
 # Optional feature dependencies
 EXTRAS_REQUIRE = {
-    'memory': [
-        'chromadb>=0.4.15',
-        'numpy>=1.24.0',
-        'scipy>=1.10.0', 
-        'sentence-transformers>=2.2.0',
-        'transformers>=4.25.0',
-        'torch>=2.0.0',
-        'pandas>=2.0.0',
-    ],
     'mcp': [
         'mcp>=0.3.0',
     ],
@@ -65,14 +56,6 @@ EXTRAS_REQUIRE = {
         'ruff>=0.1.0',
     ],
     'all': [
-        # Memory dependencies
-        'chromadb>=0.4.15',
-        'numpy>=1.24.0',
-        'scipy>=1.10.0',
-        'sentence-transformers>=2.2.0', 
-        'transformers>=4.25.0',
-        'torch>=2.0.0',
-        'pandas>=2.0.0',
         # MCP dependencies
         'mcp>=0.3.0',
         # Dev dependencies

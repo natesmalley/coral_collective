@@ -170,7 +170,6 @@
         },
         "infrastructure/": {
           "docker/": {},
-          "kubernetes/": {},
           "terraform/": {}
         },
         "tests/": {

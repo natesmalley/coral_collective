@@ -7,7 +7,6 @@ set -e
 # Default values
 : ${CORAL_ENV:=production}
 : ${CORAL_DEBUG:=false}
-: ${CORAL_MEMORY_ENABLED:=true}
 : ${LOG_LEVEL:=INFO}
 
 echo "Starting CoralCollective in ${CORAL_ENV} mode..."
@@ -60,24 +59,11 @@ except Exception as e:
     fi
 }
 
-# Function to initialize memory system
-init_memory_system() {
-    if [ "$CORAL_MEMORY_ENABLED" = "true" ]; then
-        echo "Initializing memory system..."
-        if [ -n "$CHROMA_HOST" ]; then
-            wait_for_service $CHROMA_HOST ${CHROMA_PORT:-8000} "ChromaDB" 30
-        fi
-        
-        python -c "
-try:
-    from coral_collective.memory.memory_system import MemorySystem
-    memory = MemorySystem()
-    print('Memory system initialized successfully')
-except Exception as e:
-    print(f'Memory system initialization failed: {e}')
-    # Don't exit - memory system is optional
-"
-    fi
+# Function to initialize optional components
+init_optional_components() {
+    echo "Checking optional components..."
+    # Placeholder for future optional components
+    echo "All optional components checked"
 }
 
 # Function to run health checks
@@ -108,8 +94,8 @@ main() {
         wait_for_service $REDIS_HOST ${REDIS_PORT:-6379} "Redis" 30
     fi
     
-    # Initialize memory system
-    init_memory_system
+    # Initialize optional components
+    init_optional_components
     
     # Run health checks
     health_check

@@ -178,26 +178,6 @@ def mock_project_state():
     }
 
 
-@pytest.fixture
-def mock_memory_config():
-    """Memory system configuration for testing."""
-    return {
-        "short_term": {
-            "buffer_size": 50,
-            "max_tokens": 10000
-        },
-        "long_term": {
-            "type": "chroma",
-            "collection_name": "test_memory",
-            "persist_directory": "memory/test_chroma"
-        },
-        "orchestrator": {
-            "short_term_limit": 50,
-            "consolidation_threshold": 0.7,
-            "importance_decay_hours": 24
-        }
-    }
-
 
 @pytest.fixture
 def sample_agent_prompt():
@@ -243,41 +223,13 @@ def mock_openai_client():
     return client
 
 
-@pytest.fixture 
-def mock_chromadb():
-    """Mock ChromaDB client for testing."""
-    client = Mock()
-    collection = Mock()
-    
-    # Mock collection methods
-    collection.add = Mock()
-    collection.query = Mock(return_value={
-        'documents': [['Test document']],
-        'metadatas': [[{'id': 'test_id'}]],
-        'distances': [[0.1]]
-    })
-    collection.get = Mock(return_value={
-        'documents': ['Test document'],
-        'metadatas': [{'id': 'test_id'}],
-        'ids': ['test_id']
-    })
-    collection.count = Mock(return_value=1)
-    collection.delete = Mock()
-    
-    # Mock client methods
-    client.get_or_create_collection = Mock(return_value=collection)
-    client.list_collections = Mock(return_value=[])
-    client.delete_collection = Mock()
-    
-    return client
-
 
 @pytest.fixture
 def mock_mcp_client():
     """Mock MCP client for testing."""
     client = Mock()
     client.is_connected = True
-    client.servers = ['filesystem', 'github', 'memory']
+    client.servers = ['filesystem', 'github']
     
     client.list_tools = AsyncMock(return_value=[
         {"name": "filesystem_read", "description": "Read files"},
@@ -298,50 +250,13 @@ def mock_mcp_client():
 
 
 # ============================
-# Memory system fixtures
+# Placeholder fixtures
 # ============================
 
 @pytest.fixture
-def sample_memory_items():
-    """Sample memory items for testing."""
-    try:
-        from memory.memory_system import MemoryItem, MemoryType, ImportanceLevel
-        
-        return [
-            MemoryItem(
-                id="memory_001",
-                content="Project architecture designed with microservices",
-                memory_type=MemoryType.SEMANTIC,
-                timestamp=datetime.now() - timedelta(hours=2),
-                agent_id="project_architect",
-                project_id="test_project",
-                importance=ImportanceLevel.HIGH,
-                context={"type": "architecture"},
-                tags=["architecture", "design"]
-            ),
-            MemoryItem(
-                id="memory_002",
-                content="REST API endpoints created for users",
-                memory_type=MemoryType.EPISODIC,
-                timestamp=datetime.now() - timedelta(hours=1),
-                agent_id="backend_developer", 
-                project_id="test_project",
-                importance=ImportanceLevel.MEDIUM,
-                context={"type": "implementation"},
-                tags=["api", "backend"]
-            )
-        ]
-    except ImportError:
-        return []
-
-
-@pytest.fixture
-def mock_memory_system():
-    """Mock memory system for testing."""
-    memory_system = Mock()
-    memory_system.add_memory = AsyncMock(return_value="test_memory_id")
-    memory_system.search_memories = AsyncMock(return_value=[])
-    memory_system.get_agent_context = AsyncMock(return_value={
+def mock_placeholder():
+    """Placeholder fixture for future use."""
+    return {
         "recent_memories": [],
         "working_memory": {},
         "relevant_memories": [],

@@ -69,7 +69,7 @@ COPY agents/ agents/
 COPY config/ config/
 COPY templates/ templates/
 COPY mcp/configs/ mcp/configs/
-COPY memory/ memory/
+# Memory module removed - using project state instead
 COPY MANIFEST.in ./
 
 # Install production dependencies
@@ -111,19 +111,14 @@ USER coral
 
 # Install memory dependencies
 RUN pip install --no-cache-dir \
-    chromadb>=0.4.15 \
-    sentence-transformers>=2.2.0 \
-    numpy>=1.24.0
+    numpy>=1.24.0 \
+    scipy>=1.10.0
 
-# Create ChromaDB data directory
-RUN mkdir -p /app/data/chroma
+# Create data directories
+RUN mkdir -p /app/data /app/.coral
 
-# Health check with memory system
+# Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD python -c "
-import coral_collective
-from coral_collective.memory.memory_system import MemorySystem
-print('memory system healthy')
-" || exit 1
+  CMD python -c "import coral_collective; print('CoralCollective is healthy')" || exit 1
 
 CMD ["coral", "--help"]

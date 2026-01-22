@@ -4,7 +4,7 @@
 
 Every CoralCollective project now includes two critical coordination files that ALL agents must use:
 
-1. **scratchpad.md** - Shared working memory
+1. **scratchpad.md** - Shared working document
 2. **activity_tracker.md** - Complete activity log
 
 These files solve the coordination problems identified in the FinTech Retirement Calculator feedback.
@@ -27,7 +27,7 @@ These files solve the coordination problems identified in the FinTech Retirement
 ## File Purposes
 
 ### 📝 scratchpad.md
-**Purpose**: Temporary working memory and inter-agent communication
+**Purpose**: Temporary working space and inter-agent communication
 
 **Contents**:
 - Quick notes and observations

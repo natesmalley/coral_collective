@@ -621,56 +621,51 @@ class DevOpsDeploymentMCPExample:
         """Example: Complete deployment workflow"""
         deployment_steps = []
         
-        # 1. Create deployment configuration
-        k8s_config = f'''
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {project_name}-api
-  labels:
-    app: {project_name}-api
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: {project_name}-api
-  template:
-    metadata:
-      labels:
-        app: {project_name}-api
-    spec:
-      containers:
-      - name: api
-        image: {project_name}:latest
-        ports:
-        - containerPort: 8000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: {project_name}-secrets
-              key: database-url
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {project_name}-service
-spec:
-  selector:
-    app: {project_name}-api
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8000
-  type: LoadBalancer
+        # 1. Create Docker deployment configuration
+        docker_compose = f'''
+version: '3.8'
+
+services:
+  {project_name}-api:
+    build: .
+    container_name: {project_name}-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${{DATABASE_URL}}
+      - REDIS_URL=${{REDIS_URL}}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - {project_name}-network
+
+  {project_name}-db:
+    image: postgres:15
+    container_name: {project_name}-db
+    environment:
+      - POSTGRES_DB={project_name}
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=${{DB_PASSWORD}}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - {project_name}-network
+
+networks:
+  {project_name}-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
 '''
         
         config_result = await self.bridge.filesystem_write(
-            f"{project_name}/k8s-deployment.yaml",
-            k8s_config
+            f"{project_name}/docker-compose.yml",
+            docker_compose
         )
         deployment_steps.append({
-            "step": "k8s_config",
+            "step": "docker_compose",
             "success": config_result['success']
         })
         
@@ -731,10 +726,10 @@ jobs:
         docker build -t $DOCKER_REGISTRY/{project_name}:${{{{ github.sha }}}} .
         docker push $DOCKER_REGISTRY/{project_name}:${{{{ github.sha }}}}
     
-    - name: Deploy to Kubernetes
+    - name: Deploy with Docker
       run: |
-        kubectl apply -f k8s-deployment.yaml
-        kubectl set image deployment/{project_name}-api api=$DOCKER_REGISTRY/{project_name}:${{{{ github.sha }}}}
+        docker-compose up -d
+        docker-compose ps
 '''
         
         pipeline_result = await self.bridge.filesystem_write(
@@ -860,7 +855,7 @@ echo "Backup completed: $DATE"
 
 ## Created Configurations
 
-✅ **Kubernetes Deployment**: Production-ready k8s configuration
+✅ **Docker Deployment**: Production-ready docker-compose configuration
 ✅ **CI/CD Pipeline**: GitHub Actions workflow  
 ✅ **Monitoring Stack**: Prometheus + Grafana setup
 ✅ **Backup Strategy**: Automated backup scripts

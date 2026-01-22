@@ -107,18 +107,3 @@ agents:
     prompt_path: agents/specialists/full_stack_engineer.md
     capabilities: [full_stack, debugging, production_ops, product_thinking, support, prototyping]
 
-  # Assessment Phase Agents
-  assessment_coordinator:
-    role: assessment_coordinator
-    prompt_path: agents/assessment/assessment_coordinator.md
-    capabilities: [end_to_end_validation, quality_gates, production_readiness, stakeholder_reporting]
-
-  requirements_validator:
-    role: requirements_validator
-    prompt_path: agents/assessment/requirements_validator.md
-    capabilities: [requirements_traceability, gap_analysis, acceptance_validation, compliance_reporting]
-
-  architecture_compliance_auditor:
-    role: architecture_auditor
-    prompt_path: agents/assessment/architecture_compliance_auditor.md
-    capabilities: [architectural_integrity, design_compliance, technical_debt_analysis, scalability_assessment]
