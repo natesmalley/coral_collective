@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Any
 
 try:
-    from agent_runner import AgentRunner
+    from .agent_runner import AgentRunner
 except Exception:  # pragma: no cover - fallback for partial environments
     AgentRunner = None  # type: ignore
 
@@ -351,7 +351,7 @@ async def compose_async(
     if include_mcp_tools and mcp_bridge:
         try:
             # Import bridge components
-            from tools.agent_mcp_bridge import MCPToolsPromptGenerator
+            from .tools.agent_mcp_bridge import MCPToolsPromptGenerator
 
             # Generate comprehensive MCP tools documentation
             prompt_generator = MCPToolsPromptGenerator(mcp_bridge)

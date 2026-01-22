@@ -19,8 +19,8 @@ from rich.panel import Panel
 from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
 
-from tools.feedback_collector import FeedbackCollector
-from tools.project_state import ProjectStateManager
+from .tools.feedback_collector import FeedbackCollector
+from .tools.project_state import ProjectStateManager
 
 console = Console()
 

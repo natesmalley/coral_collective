@@ -16,7 +16,7 @@ import networkx as nx
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import yaml
 
-from tools.project_state import ProjectStateManager
+from .project_state import ProjectStateManager
 
 
 class ExecutionMode(Enum):
