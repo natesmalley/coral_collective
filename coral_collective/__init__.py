@@ -25,14 +25,14 @@ except ImportError:
     import sys
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-    from agent_prompt_service import (
+    from coral_collective.agent_prompt_service import (
         AgentPromptService,
         PromptPayload,
         compose,
         compose_async,
     )
-    from agent_runner import AgentRunner
-    from project_manager import ProjectManager
+    from coral_collective.agent_runner import AgentRunner
+    from coral_collective.project_manager import ProjectManager
 
 # Tools imports
 # Configuration
