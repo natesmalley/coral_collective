@@ -337,7 +337,8 @@ class MCPServerTester {
                     
                     // Test script help
                     try {
-                        const { stdout, stderr } = await execAsync(`${scriptPath} help`, { timeout: 5000 });
+                        const execFileAsync = util.promisify(require('child_process').execFile);
+                        const { stdout, stderr } = await execFileAsync(scriptPath, ['help'], { timeout: 5000 });
                         results[`${server.name}_help`] = 'help_works';
                     } catch (helpError) {
                         results[`${server.name}_help`] = 'help_failed';
