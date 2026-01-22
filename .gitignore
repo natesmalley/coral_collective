@@ -4,9 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-ENV/
 build/
 develop-eggs/
 dist/
@@ -23,47 +20,33 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Virtual Environments
 venv/
-ENV/
 env/
-.venv/
+ENV/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
+
+# OS
 .DS_Store
+Thumbs.db
 
-# EXCLUDE ALL CLAUDE/WORK FILES
-claude_code_*.json
-claude_code_*.yaml
-claude_code_*.md
-CLAUDE.md
-CRITICAL_ANALYSIS.md
-ENHANCED_MASTER_PROMPT.md
-AGENT_FORCE_MASTER_PROMPT.md
-OPERATIONAL_GUIDE.md
+# Environment
+.env
+*.env.local
 
-# Project specific - exclude all working data
+# CoralCollective
 projects/
 exports/
 feedback/
 metrics/
-*.log
-.env
-temp/
-tmp/
-
-# Session data
 session_*.json
-*.bak
+.coral/
+*.log
 
-# Exclude example project files
-*.yaml
-*.yaml.example
-
-# Keep only core agent definitions
-!config/agents.yaml
+# Claude
+.claude/

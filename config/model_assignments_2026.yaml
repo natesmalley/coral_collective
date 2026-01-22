@@ -1,0 +1,262 @@
+# Model Assignments Configuration - 2026
+# Maintained by Model Strategy Specialist Agent
+# Last Updated: January 2026
+
+version: 2026.1
+last_updated: 2026-01-21
+
+# Model Registry - Updated with latest 2026 models
+models:
+  premium:
+    claude-4.5-opus:
+      provider: anthropic
+      cost_per_1M_input: 12.00
+      cost_per_1M_output: 60.00
+      max_context: 500000
+      strengths: [deep_reasoning, complex_coding, security_analysis, architecture]
+      
+    gpt-5.2-pro:
+      provider: openai
+      cost_per_1M_input: 10.00
+      cost_per_1M_output: 50.00
+      max_context: 256000
+      strengths: [advanced_reasoning, research, complex_analysis]
+      
+    o3:
+      provider: openai
+      access: limited_availability
+      cost_per_1M_input: 15.00
+      cost_per_1M_output: 75.00
+      strengths: [mathematical_reasoning, scientific_computing, complex_problems]
+  
+  production:
+    gpt-5.2:
+      provider: openai
+      cost_per_1M_input: 2.50
+      cost_per_1M_output: 10.00
+      max_context: 128000
+      strengths: [general_coding, multimodal, cost_effective]
+      
+    claude-4.5-sonnet:
+      provider: anthropic
+      cost_per_1M_input: 3.00
+      cost_per_1M_output: 15.00
+      max_context: 200000
+      strengths: [balanced_performance, coding, long_context]
+      
+    gemini-3-pro:
+      provider: google
+      cost_per_1M_input: 2.00
+      cost_per_1M_output: 8.00
+      max_context: 1000000
+      strengths: [multimodal, long_context, efficient]
+      
+    deepseek-v3.2:
+      provider: deepseek
+      cost_per_1M_input: 1.00
+      cost_per_1M_output: 5.00
+      max_context: 128000
+      strengths: [cost_efficient, coding, general_tasks]
+  
+  efficiency:
+    gpt-5.2-mini:
+      provider: openai
+      cost_per_1M_input: 0.50
+      cost_per_1M_output: 2.00
+      strengths: [simple_tasks, high_volume, fast]
+      
+    claude-4.5-haiku:
+      provider: anthropic
+      cost_per_1M_input: 1.00
+      cost_per_1M_output: 5.00
+      max_context: 200000
+      strengths: [documentation, simple_edits, real_time]
+      
+    o3-mini:
+      provider: openai
+      cost_per_1M_input: 2.00
+      cost_per_1M_output: 8.00
+      strengths: [reasoning_tasks, cost_balanced]
+      
+  specialized:
+    gpt-5.2-reasoning:
+      provider: openai
+      access: subscription_included
+      strengths: [transparent_reasoning, complex_problem_solving]
+      note: uses_reasoning_tokens
+
+# Agent to Model Assignments
+agent_assignments:
+  # Core Agents
+  project_architect:
+    primary: claude-4.5-opus
+    fallback: gpt-5.2-pro
+    budget: claude-4.5-sonnet
+    max_tokens: 25000
+    
+  technical_writer_phase1:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    max_tokens: 15000
+    
+  technical_writer_phase2:
+    primary: claude-4.5-haiku
+    fallback: gpt-5.2-mini
+    max_tokens: 10000
+    
+  # Development Specialists
+  backend_developer:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    budget: deepseek-v3.2
+    max_tokens: 25000
+    
+  frontend_developer:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    budget: claude-4.5-haiku
+    max_tokens: 20000
+    
+  full_stack_engineer:
+    primary: claude-4.5-opus
+    fallback: gpt-5.2-reasoning
+    max_tokens: 30000
+    
+  mobile_developer:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    max_tokens: 20000
+    
+  # AI/ML Specialists
+  ai_ml_specialist:
+    primary: o3
+    fallback: claude-4.5-opus
+    budget: gpt-5.2-reasoning
+    max_tokens: 25000
+    
+  analytics_engineer:
+    primary: gpt-5.2
+    fallback: gemini-3-pro
+    budget: deepseek-v3.2
+    max_tokens: 15000
+    
+  # Infrastructure & Operations
+  devops_deployment:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    budget: deepseek-v3.2
+    max_tokens: 15000
+    
+  site_reliability_engineer:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    max_tokens: 12000
+    
+  database_specialist:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    max_tokens: 15000
+    
+  data_engineer:
+    primary: gpt-5.2
+    fallback: gemini-3-pro
+    max_tokens: 15000
+    
+  # Security & Compliance
+  security_specialist:
+    primary: claude-4.5-opus
+    fallback: gpt-5.2-pro
+    never_use: [gpt-5.2-mini, claude-4.5-haiku, deepseek-v3.2]
+    max_tokens: 20000
+    
+  compliance_specialist:
+    primary: claude-4.5-opus
+    fallback: o3
+    max_tokens: 12000
+    
+  # Design & Quality
+  ui_designer:
+    primary: gpt-5.2-mini
+    fallback: claude-4.5-haiku
+    upgrade_to: gpt-5.2  # for complex design systems
+    max_tokens: 10000
+    
+  accessibility_specialist:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    max_tokens: 12000
+    
+  qa_testing:
+    primary: gpt-5.2
+    fallback: claude-4.5-opus  # for critical testing
+    budget: gpt-5.2-mini
+    max_tokens: 20000
+    
+  performance_engineer:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    max_tokens: 15000
+    
+  # API & Integration
+  api_designer:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    budget: deepseek-v3.2
+    max_tokens: 12000
+    
+  # Model Strategy
+  model_strategy_specialist:
+    primary: gpt-5.2
+    fallback: claude-4.5-sonnet
+    max_tokens: 20000
+    note: responsible_for_maintaining_this_file
+
+# Dynamic Selection Rules
+selection_rules:
+  - condition: task_complexity == "critical"
+    models: [claude-4.5-opus, gpt-5.2-pro, o3]
+    
+  - condition: task_complexity == "complex"
+    models: [gpt-5.2, claude-4.5-sonnet]
+    
+  - condition: task_complexity == "standard"
+    models: [gpt-5.2, claude-4.5-sonnet, gemini-3-pro]
+    
+  - condition: task_complexity == "simple"
+    models: [gpt-5.2-mini, claude-4.5-haiku, deepseek-v3.2]
+    
+  - condition: budget_mode == true
+    prefer: [deepseek-v3.2, gpt-5.2-mini, claude-4.5-haiku]
+    
+  - condition: security_critical == true
+    require: [claude-4.5-opus]
+    exclude: [gpt-5.2-mini, claude-4.5-haiku, deepseek-v3.2]
+
+# Cost Optimization Settings
+optimization:
+  enable_caching: true
+  cache_threshold_tokens: 1000
+  batch_processing: true
+  batch_size: 10
+  
+  token_budgets:
+    daily_limit: 2000000
+    weekly_limit: 10000000
+    monthly_limit: 40000000
+    
+  cost_alerts:
+    daily_threshold: 50.00
+    weekly_threshold: 250.00
+    monthly_threshold: 1000.00
+
+# Performance Tracking
+metrics:
+  track_success_rate: true
+  track_token_usage: true
+  track_response_time: true
+  track_cost_per_task: true
+  
+  reporting:
+    frequency: daily
+    format: [json, markdown]
+    destination: reports/model_metrics/
