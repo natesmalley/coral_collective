@@ -43,12 +43,7 @@ gh api -X PUT "repos/$REPO/branches/main/protection" \
     "required_approving_review_count": 1,
     "dismiss_stale_reviews": true,
     "require_code_owner_reviews": true,
-    "require_last_push_approval": false,
-    "bypass_pull_request_allowances": {
-      "users": [],
-      "teams": [],
-      "apps": []
-    }
+    "require_last_push_approval": false
   },
   "restrictions": null,
   "allow_force_pushes": false,
