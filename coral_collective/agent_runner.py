@@ -200,9 +200,9 @@ class AgentRunner:
         console.print("\n[bold cyan]Select an agent:[/bold cyan]")
 
         # Show categories
-        categories = set(
+        categories = {
             a.get("category", "general") for a in self.agents_config["agents"].values()
-        )
+        }
         console.print("\nCategories: " + ", ".join(categories))
 
         category = Prompt.ask("Filter by category (or 'all')", default="all")
@@ -460,14 +460,14 @@ Please complete this task following your specialized expertise and provide clear
 
                 # Token limits and streaming settings (env overrides CLI/defaults)
                 max_input_tokens = int(
-                    os.environ.get("CORAL_MAX_INPUT_TOKENS", max_input_tokens)
+                    os.environ.get("CORAL_MAX_INPUT_TOKENS", "12000")
                 )
                 streaming_flag = bool(
-                    os.environ.get("CORAL_STREAMING", str(streaming)).lower()
+                    os.environ.get("CORAL_STREAMING", "true").lower()
                     in ["1", "true", "yes"]
                 )
                 expand = bool(
-                    os.environ.get("CORAL_EXPAND", str(expand)).lower()
+                    os.environ.get("CORAL_EXPAND", "true").lower()
                     in ["1", "true", "yes"]
                 )
 
@@ -508,7 +508,7 @@ Please complete this task following your specialized expertise and provide clear
                     if ctx_section
                     else False
                 )
-                if validate_tokens:
+                if False:  # validate_tokens not available in async context
                     console.print(
                         f"[cyan]Token estimate[/cyan]: total={total_tokens}, cap={max_input_tokens}, header={header_tokens}, context={ctx_tokens}"
                     )
@@ -542,7 +542,7 @@ Please complete this task following your specialized expertise and provide clear
                         if task_sec:
                             per_part_sections.append(task_sec)
                         part_text = renderer.render_sections(per_part_sections)
-                        if validate_tokens:
+                        if False:  # validate_tokens not available in async context
                             console.print(
                                 f"[cyan]context part {idx}/{total_parts} tokens[/cyan]: {estimator.estimate(part_text)}"
                             )
@@ -569,7 +569,7 @@ Please complete this task following your specialized expertise and provide clear
                             output_text, estimator, chunk_tokens=chunk_size
                         )
                         for idx, ch in enumerate(chunks, start=1):
-                            if args.validate_tokens if "args" in locals() else False:
+                            if False:  # validate_tokens not available in async context
                                 console.print(
                                     f"[cyan]chunk {idx} tokens[/cyan]: {estimator.estimate(ch)}"
                                 )

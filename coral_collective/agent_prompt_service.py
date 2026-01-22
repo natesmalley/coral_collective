@@ -288,44 +288,6 @@ def chunk_text(
     return chunks
 
 
-def compose(
-    agent_id: str,
-    task: str,
-    runner: Optional[AgentRunner] = None,
-    project_context: Optional[Dict[str, Any]] = None,
-    include_mcp_tools: bool = True,
-) -> PromptPayload:
-    """Compose a provider-agnostic prompt payload for a given agent and task."""
-    # Lazy init to avoid side effects in import
-    if runner is None and AgentRunner is not None:
-        runner = AgentRunner()
-    if runner is None:
-        raise RuntimeError("AgentRunner unavailable; cannot compose prompt")
-    # Use the existing AgentRunner logic to get the base agent prompt
-    base_prompt = runner.get_agent_prompt(agent_id)
-    # Agent metadata from config
-    agent_cfg = runner.agents_config.get("agents", {}).get(agent_id, {})
-    agent_name = agent_cfg.get("name", agent_id)
-    # MCP tools (optional) - legacy fallback for sync usage
-    mcp_tools: Optional[Dict[str, Any]] = None
-    if include_mcp_tools and getattr(runner, "mcp_client", None):
-        try:
-            tools = runner.mcp_client.get_tools_for_agent(agent_id)  # type: ignore[attr-defined]
-            if tools:
-                mcp_tools = tools
-        except Exception:
-            # Tools unavailable; keep None
-            pass
-    return PromptPayload(
-        agent_id=agent_id,
-        agent_name=agent_name,
-        base_prompt=base_prompt,
-        task=task,
-        project_context=project_context,
-        mcp_tools=mcp_tools,
-    )
-
-
 async def compose_async(
     agent_id: str,
     task: str,
@@ -374,7 +336,7 @@ async def compose_async(
                     mcp_tools_text = (
                         f"Available MCP Tools: {', '.join(available_tools.keys())}"
                     )
-            except:
+            except Exception:
                 pass
 
     # Convert text to dict format for compatibility (will be converted back in build_sections)

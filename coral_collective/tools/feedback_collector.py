@@ -81,7 +81,7 @@ class FeedbackCollector:
         except FileNotFoundError:
             data = self.initialize_metrics()
 
-        month = datetime.now().strftime("%Y-%m")
+        # month = datetime.now().strftime("%Y-%m")  # Not currently used
 
         if "agent_metrics" not in data:
             data["agent_metrics"] = {}
