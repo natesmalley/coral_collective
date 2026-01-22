@@ -24,7 +24,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from coral_collective.agent_runner import AgentRunner
-from coral_collective.tools.project_state import ProjectStateManager, AgentHandoff
+from coral_collective.tools.project_state import ProjectStateManager
+# AgentHandoff class doesn't exist in project_state module
 from tests.fixtures.test_data import create_test_environment
 
 # Try to import memory system if available
