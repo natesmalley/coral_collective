@@ -136,6 +136,8 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{matrix.language}}"
+        # Only analyze if not a fork
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
 
   # OWASP dependency check
@@ -189,7 +191,8 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
-        if: always()
+        # Only upload if not a fork and file exists
+        if: always() && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
         continue-on-error: true
 
   # Secret scanning
