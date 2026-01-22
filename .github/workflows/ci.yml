@@ -178,6 +178,7 @@ jobs:
         with:
           context: .
           push: false
+          load: true
           tags: coral-collective:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
