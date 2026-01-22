@@ -225,6 +225,8 @@ markers = [
     "cli: marks tests for CLI functionality",
     "deployment: marks tests for deployment functionality",
     "workflows: marks tests for workflow functionality",
+    "docker: marks tests for Docker functionality",
+    "agent: marks tests for agent functionality",
 ]
 filterwarnings = [
     "error",
