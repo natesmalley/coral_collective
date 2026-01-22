@@ -92,7 +92,7 @@ class TestAgentRunnerInitialization:
             
             # Test 2: Running from .coral directory
             coral_dir = temp_project_dir / ".coral"
-            coral_dir.mkdir()
+            coral_dir.mkdir(exist_ok=True)
             
             with patch('coral_collective.agent_runner.Path') as mock_path:
                 mock_path.return_value.name = ".coral"
