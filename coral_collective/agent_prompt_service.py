@@ -288,6 +288,22 @@ def chunk_text(
     return chunks
 
 
+class AgentPromptService:
+    """Compatibility wrapper for the refactored prompt service functions."""
+    
+    def __init__(self, base_path=None):
+        """Initialize the service (base_path kept for compatibility)."""
+        self.base_path = base_path
+    
+    def compose(self, agent_id: str, task: str, runner=None, project_context=None, include_mcp_tools=True):
+        """Wrapper for the compose function."""
+        return compose(agent_id, task, runner, project_context, include_mcp_tools)
+    
+    async def compose_async(self, agent_id: str, task: str, runner=None, project_context=None, include_mcp_tools=True, mcp_bridge=None):
+        """Wrapper for the compose_async function."""
+        return await compose_async(agent_id, task, runner, project_context, include_mcp_tools, mcp_bridge)
+
+
 async def compose_async(
     agent_id: str,
     task: str,

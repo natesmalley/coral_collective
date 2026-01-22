@@ -11,7 +11,12 @@ from typing import Any, Dict, List, Optional
 
 # Core imports
 try:
-    from .agent_prompt_service import AgentPromptService
+    from .agent_prompt_service import (
+        AgentPromptService,
+        PromptPayload,
+        compose,
+        compose_async,
+    )
     from .agent_runner import AgentRunner
     from .project_manager import ProjectManager
 except ImportError:
@@ -20,7 +25,12 @@ except ImportError:
     import sys
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-    from agent_prompt_service import AgentPromptService
+    from agent_prompt_service import (
+        AgentPromptService,
+        PromptPayload,
+        compose,
+        compose_async,
+    )
     from agent_runner import AgentRunner
     from project_manager import ProjectManager
 
@@ -34,6 +44,9 @@ __all__ = [
     "AgentRunner",
     "ProjectManager",
     "AgentPromptService",
+    "PromptPayload",
+    "compose",
+    "compose_async",
     "ProjectStateManager",
     "FeedbackCollector",
     "load_agents_config",
