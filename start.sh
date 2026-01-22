@@ -50,22 +50,22 @@ while true; do
         1)
             echo ""
             echo "🚀 Starting Workflow Wizard..."
-            python3 agent_runner.py workflow
+            python3 -m coral_collective.agent_runner workflow
             ;;
         2)
             echo ""
             echo "🎯 Running Single Agent..."
-            python3 agent_runner.py run
+            python3 -m coral_collective.agent_runner run
             ;;
         3)
             echo ""
             echo "📊 Opening Project Manager..."
-            python3 project_manager.py
+            python3 -m coral_collective.project_manager
             ;;
         4)
             echo ""
             echo "📈 Loading Dashboard..."
-            python3 agent_runner.py dashboard
+            python3 -m coral_collective.agent_runner dashboard
             ;;
         5)
             echo ""
@@ -75,7 +75,7 @@ while true; do
             read -p "Issue description: " issue
             read -p "Improvement suggestion: " suggestion
             read -p "Priority (low/medium/high/critical): " priority
-            python3 tools/feedback_collector.py feedback \
+            python3 -m coral_collective.tools.feedback_collector feedback \
                 --agent "$agent_id" \
                 --issue "$issue" \
                 --suggestion "$suggestion" \
@@ -84,7 +84,7 @@ while true; do
         6)
             echo ""
             echo "📋 Available Agents:"
-            python3 agent_runner.py list
+            python3 -m coral_collective.agent_runner list
             ;;
         7)
             echo ""
@@ -100,14 +100,14 @@ while true; do
             case $adv_choice in
                 a)
                     echo "Generating performance report..."
-                    python3 tools/feedback_collector.py report
+                    python3 -m coral_collective.tools.feedback_collector report
                     ;;
                 b)
                     echo "Export project data..."
                     read -p "Project name: " project_name
                     read -p "Format (yaml/json/markdown): " format
                     python3 -c "
-from project_manager import ProjectManager
+from coral_collective.project_manager import ProjectManager
 m = ProjectManager()
 m.export_project('$project_name', '$format')
 "
