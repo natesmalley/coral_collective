@@ -106,7 +106,7 @@ class TestFullProjectLifecycle:
         """Test complete project development lifecycle"""
         
         # Mock agent runner to simulate realistic execution
-        with patch('agent_runner.AgentRunner') as mock_runner_class:
+        with patch('coral_collective.agent_runner.AgentRunner') as mock_runner_class:
             mock_runner = self._create_mock_agent_runner()
             mock_runner_class.return_value = mock_runner
             
@@ -540,7 +540,7 @@ class TestWorkflowIntegration:
     async def test_multi_phase_workflow_execution(self):
         """Test execution of multi-phase workflow with dependencies"""
         
-        with patch('agent_runner.AgentRunner') as mock_runner_class:
+        with patch('coral_collective.agent_runner.AgentRunner') as mock_runner_class:
             # Mock successful agent executions
             mock_runner = Mock()
             
@@ -674,7 +674,7 @@ class TestErrorRecoveryAndResilience:
     async def test_agent_failure_recovery(self):
         """Test recovery from agent execution failures"""
         
-        with patch('agent_runner.AgentRunner') as mock_runner_class:
+        with patch('coral_collective.agent_runner.AgentRunner') as mock_runner_class:
             mock_runner = Mock()
             
             call_count = 0
@@ -716,7 +716,7 @@ class TestErrorRecoveryAndResilience:
         
         for attempt in range(max_retries + 1):
             try:
-                with patch('agent_runner.AgentRunner') as mock_runner_class:
+                with patch('coral_collective.agent_runner.AgentRunner') as mock_runner_class:
                     mock_runner = Mock()
                     
                     # Simulate the retry behavior

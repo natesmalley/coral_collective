@@ -75,7 +75,7 @@ print("OUTPUT:", result.output)
         # Should succeed or provide meaningful output
         assert "test_project" in result.stdout or result.returncode == 0
     
-    @patch('agent_runner.AgentRunner')
+    @patch('coral_collective.agent_runner.AgentRunner')
     def test_coral_run_command(self, mock_runner_class):
         """Test coral run command"""
         
@@ -123,7 +123,7 @@ print("DURATION:", result["duration"])
         assert "SUCCESS: True" in result.stdout
         assert "DURATION:" in result.stdout
     
-    @patch('agent_runner.AgentRunner')  
+    @patch('coral_collective.agent_runner.AgentRunner')  
     def test_coral_list_command(self, mock_runner_class):
         """Test coral list command"""
         
@@ -261,8 +261,8 @@ class TestInteractiveCliWorkflows:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
     
-    @patch('agent_runner.Prompt.ask')
-    @patch('agent_runner.AgentRunner')
+    @patch('coral_collective.agent_runner.Prompt.ask')
+    @patch('coral_collective.agent_runner.AgentRunner')
     def test_interactive_agent_selection(self, mock_runner_class, mock_prompt):
         """Test interactive agent selection"""
         
@@ -292,7 +292,7 @@ from coral_collective.agent_runner import AgentRunner
 from unittest.mock import patch
 
 # Simulate interactive selection
-with patch('agent_runner.Prompt.ask') as mock_ask:
+with patch('coral_collective.agent_runner.Prompt.ask') as mock_ask:
     mock_ask.side_effect = ["backend_developer", "Create API"]
     
     runner = AgentRunner()
@@ -310,7 +310,7 @@ with patch('agent_runner.Prompt.ask') as mock_ask:
         # Should handle interactive selection
         assert result.returncode == 0 or "SELECTED_AGENT:" in result.stdout
     
-    @patch('agent_runner.AgentRunner')
+    @patch('coral_collective.agent_runner.AgentRunner')
     def test_workflow_interactive_execution(self, mock_runner_class):
         """Test interactive workflow execution"""
         
@@ -458,7 +458,7 @@ except Exception as e:
         assert ("INVALID_COMMAND_HANDLED: True" in result.stdout or 
                 result.returncode != 0)
     
-    @patch('agent_runner.AgentRunner')
+    @patch('coral_collective.agent_runner.AgentRunner')
     def test_agent_execution_error_handling(self, mock_runner_class):
         """Test handling of agent execution errors"""
         
@@ -605,7 +605,7 @@ class TestCliIntegrationWithSystems:
             shutil.rmtree(self.temp_dir)
     
     @patch('memory.coral_memory_integration.CoralMemoryIntegration')
-    @patch('agent_runner.AgentRunner')
+    @patch('coral_collective.agent_runner.AgentRunner')
     def test_cli_with_memory_system(self, mock_runner_class, mock_memory_class):
         """Test CLI integration with memory system"""
         
@@ -682,7 +682,7 @@ print("MEMORY_INTEGRATION_TEST:", result)
         assert "MEMORY_INTEGRATION_TEST: SUCCESS" in result.stdout
     
     @patch('mcp.mcp_client.MCPClient')
-    @patch('agent_runner.AgentRunner')
+    @patch('coral_collective.agent_runner.AgentRunner')
     def test_cli_with_mcp_integration(self, mock_runner_class, mock_mcp_class):
         """Test CLI integration with MCP system"""
         

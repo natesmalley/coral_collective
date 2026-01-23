@@ -137,7 +137,7 @@ You are a Senior DevOps Engineer AI agent.
     
     def test_sequential_agent_workflow(self):
         """Test sequential execution of multiple agents"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -202,7 +202,7 @@ You are a Senior DevOps Engineer AI agent.
     
     def test_workflow_with_failures(self):
         """Test workflow handling with agent failures"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -251,7 +251,7 @@ You are a Senior DevOps Engineer AI agent.
     
     def test_workflow_with_conditional_branches(self):
         """Test workflow with conditional execution paths"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()

@@ -91,7 +91,7 @@ class TestBasicAgentHandoffs:
     
     def test_simple_handoff_between_two_agents(self):
         """Test basic handoff from architect to backend developer"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -233,7 +233,7 @@ class TestBasicAgentHandoffs:
     
     def test_multi_agent_handoff_chain(self):
         """Test handoffs across multiple agents in sequence"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -351,7 +351,7 @@ class TestBasicAgentHandoffs:
     
     def test_parallel_handoffs_to_multiple_agents(self):
         """Test handoff from one agent to multiple agents in parallel"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -565,7 +565,7 @@ class TestHandoffValidationAndErrors:
     
     def test_agent_execution_failure_after_handoff(self):
         """Test handling agent failure after receiving handoff"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()

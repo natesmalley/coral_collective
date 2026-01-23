@@ -78,7 +78,7 @@ class TestAgentRunner:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
     
-    @patch('agent_runner.Path')
+    @patch('coral_collective.agent_runner.Path')
     def test_agent_runner_initialization(self, mock_path):
         """Test AgentRunner initialization"""
         mock_path.return_value.parent = self.temp_dir
@@ -98,7 +98,7 @@ class TestAgentRunner:
     
     def test_load_agents_config(self):
         """Test loading agents configuration"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -110,7 +110,7 @@ class TestAgentRunner:
     
     def test_get_available_agents(self):
         """Test getting list of available agents"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -127,7 +127,7 @@ class TestAgentRunner:
     
     def test_get_agent_info(self):
         """Test getting specific agent information"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -143,11 +143,11 @@ class TestAgentRunner:
             info = runner.get_agent_info('nonexistent_agent')
             assert info is None
     
-    @patch('agent_runner.Prompt.ask')
+    @patch('coral_collective.agent_runner.Prompt.ask')
     @patch('rich.console.Console.print')
     def test_interactive_agent_selection(self, mock_print, mock_prompt):
         """Test interactive agent selection"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             mock_prompt.return_value = "project_architect"
@@ -158,10 +158,10 @@ class TestAgentRunner:
             assert selected == "project_architect"
             mock_print.assert_called()  # Should print available agents
     
-    @patch('agent_runner.subprocess.run')
+    @patch('coral_collective.agent_runner.subprocess.run')
     def test_copy_to_clipboard(self, mock_subprocess):
         """Test copying content to clipboard"""
-        with patch('agent_runner.Path') as mock_path:
+        with patch('coral_collective.agent_runner.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             runner = AgentRunner()
@@ -298,7 +298,7 @@ class TestSubagentRegistry:
             }
         }
         
-        with patch('subagent_registry.Path') as mock_path:
+        with patch('coral_collective.subagent_registry.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             self.registry = SubagentRegistry()
             
@@ -307,7 +307,7 @@ class TestSubagentRegistry:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
     
-    @patch('subagent_registry.yaml.safe_load')
+    @patch('coral_collective.subagent_registry.yaml.safe_load')
     @patch('builtins.open', new_callable=mock_open)
     def test_load_agents_config(self, mock_file, mock_yaml):
         """Test loading agents configuration"""
@@ -379,7 +379,7 @@ class TestSubagentRegistry:
         assert result['options']['project'] == 'test'
         assert result['options']['mcp_enabled'] is True
     
-    @patch('subagent_registry.AgentRunner')
+    @patch('coral_collective.subagent_registry.AgentRunner')
     def test_invoke_subagent(self, mock_runner_class):
         """Test invoking a subagent"""
         mock_runner = Mock()
@@ -474,7 +474,7 @@ Develop robust backend systems.
         with open(agents_dir / "specialists" / "backend_developer.md", 'w') as f:
             f.write(backend_content)
     
-    @patch('agent_runner.Path')
+    @patch('coral_collective.agent_runner.Path')
     def test_full_agent_workflow(self, mock_path):
         """Test complete agent workflow from loading to execution"""
         mock_path.return_value.parent = self.temp_dir
@@ -504,7 +504,7 @@ Develop robust backend systems.
         
     def test_agent_registry_integration(self):
         """Test agent registry with real configuration"""
-        with patch('subagent_registry.Path') as mock_path:
+        with patch('coral_collective.subagent_registry.Path') as mock_path:
             mock_path.return_value.parent = self.temp_dir
             
             registry = SubagentRegistry()
