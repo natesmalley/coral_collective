@@ -35,7 +35,14 @@ try:
 
     MCP_AVAILABLE = True
 except ImportError:
-    pass
+    MCP_AVAILABLE = False
+    # Define dummy classes for type hints when MCP is not available
+    class AgentMCPBridge:  # type: ignore
+        pass
+    class MCPToolsPromptGenerator:  # type: ignore
+        pass
+    class MCPClient:  # type: ignore
+        pass
 
 
 class AgentRunner:

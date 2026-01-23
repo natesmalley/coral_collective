@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for CoralCollective
-FROM python:3.14-slim as base
+FROM python:3.12-slim as base
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
