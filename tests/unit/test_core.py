@@ -77,20 +77,27 @@ class TestProjectState:
     
     def test_project_state_creation(self):
         """Test ProjectState creation and initialization"""
+        now = datetime.now().isoformat()
         project_state = ProjectState(
-            project_name="test_project",
+            name="test_project",
             project_id="proj_123",
-            created_at=datetime.now(),
-            current_phase="development",
-            status="active"
+            created_at=now,
+            updated_at=now,
+            phase="development",
+            status="active",
+            agents_completed=[],
+            current_agent=None,
+            context={},
+            metadata={}
         )
         
-        assert project_state.project_name == "test_project"
+        assert project_state.name == "test_project"
         assert project_state.project_id == "proj_123"
-        assert project_state.current_phase == "development"
+        assert project_state.phase == "development"
         assert project_state.status == "active"
-        assert len(project_state.completed_agents) == 0
-        assert len(project_state.handoffs) == 0
+        assert len(project_state.agents_completed) == 0
+        assert project_state.context == {}
+        assert project_state.metadata == {}
 
 
 class TestProjectStateManager:
