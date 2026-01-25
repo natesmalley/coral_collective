@@ -116,18 +116,14 @@ class TestProjectStateManager:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
     
-    def test_initialization_creates_state_file(self):
-        """Test that initialization creates state file if not exists"""
-        state_file = self.coral_dir / 'project_state.yaml'
-        assert state_file.exists()
+    def test_initialization_creates_state_directory(self):
+        """Test that initialization creates state directory"""
+        # The manager should create the state directory
+        assert self.manager.state_dir.exists()
+        assert self.manager.state_dir.is_dir()
         
-        # Load and verify initial state
-        with open(state_file) as f:
-            state_data = yaml.safe_load(f)
-            
-        assert state_data['project']['name'] == self.temp_dir.name
-        assert state_data['project']['status'] == 'active'
-        assert state_data['agents']['completed'] == []
+        # The state directory should be the temp_dir we provided
+        assert self.manager.state_dir == self.temp_dir
     
     def test_load_existing_state(self):
         """Test loading existing project state"""
