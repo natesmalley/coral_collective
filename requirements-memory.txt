@@ -1,0 +1,15 @@
+# Memory System Dependencies
+# Install with: pip install -r requirements-memory.txt
+# Note: These are heavy ML dependencies that may take time to install
+
+# Pinned versions to avoid dependency resolution issues
+chromadb==0.4.24
+numpy==1.26.4
+scipy==1.13.1
+sentence-transformers==2.7.0
+transformers==4.44.2
+torch==2.4.1
+pandas==2.2.3
+
+# These dependencies have specific version requirements
+# Install them separately if you encounter issues

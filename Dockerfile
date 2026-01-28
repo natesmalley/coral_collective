@@ -31,15 +31,15 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt setup.py ./
 COPY coral_collective/__init__.py coral_collective/__init__.py
 
-# Install dependencies
+# Install dependencies - skip memory deps to avoid resolution issues
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install -e .[all]
+    pip install -e .[mcp,dev,docs]
 
 # Copy source code
 COPY . .
 
-# Install in development mode
-RUN pip install -e .[all]
+# Install in development mode - skip memory deps
+RUN pip install -e .[mcp,dev,docs]
 
 # Change ownership to coral user
 RUN chown -R coral:coral /app /opt/venv
