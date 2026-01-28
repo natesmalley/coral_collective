@@ -3,9 +3,8 @@
 CoralCollective CLI - Main entry point for command-line operations
 """
 
-import sys
-import os
 import argparse
+import sys
 from pathlib import Path
 
 # Add parent directory to path for imports
@@ -23,7 +22,7 @@ Examples:
   coral run project_architect          # Run an agent interactively
   coral workflow full_stack            # Run a complete workflow
   coral check                          # Check system health
-  
+
 For more information, see: https://github.com/coral-collective/coral-collective
         """,
     )
@@ -66,7 +65,7 @@ For more information, see: https://github.com/coral-collective/coral-collective
     state_load = state_subparsers.add_parser("load", help="Load project state")
     state_load.add_argument("--project", required=True, help="Project ID")
 
-    state_list = state_subparsers.add_parser("list", help="List saved states")
+    state_subparsers.add_parser("list", help="List saved states")
 
     # Init command
     init_parser = subparsers.add_parser(
@@ -141,7 +140,6 @@ For more information, see: https://github.com/coral-collective/coral-collective
 def init_command():
     """Initialize CoralCollective in the current directory."""
     import subprocess
-    import shutil
 
     print("Initializing CoralCollective in current directory...")
 
