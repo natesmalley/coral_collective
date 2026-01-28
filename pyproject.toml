@@ -44,13 +44,13 @@ dependencies = [
 
 [project.optional-dependencies]
 memory = [
-    "chromadb>=0.4.15",
-    "numpy>=1.24.0",
-    "scipy>=1.10.0",
-    "sentence-transformers>=2.2.0",
-    "transformers>=4.25.0",
-    "torch>=2.0.0",
-    "pandas>=2.0.0",
+    "chromadb>=0.4.15,<0.5.0",
+    "numpy>=1.24.0,<2.0.0",
+    "scipy>=1.10.0,<2.0.0",
+    "sentence-transformers>=2.2.0,<3.0.0",
+    "transformers>=4.25.0,<5.0.0",
+    "torch>=2.0.0,<3.0.0",
+    "pandas>=2.0.0,<3.0.0",
 ]
 mcp = [
     "mcp>=0.3.0",
@@ -129,22 +129,6 @@ exclude = '''
 [tool.ruff]
 target-version = "py38"
 line-length = 88
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
-    "ARG001", # unused arguments in functions
-]
-ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
-    "W191",  # indentation contains tabs
-]
 exclude = [
     ".bzr",
     ".direnv",
@@ -169,11 +153,29 @@ exclude = [
     "venv",
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "ARG001", # unused arguments in functions
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+    "W191",  # indentation contains tabs
+]
+
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/**/*" = ["ARG001"]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
 [tool.mypy]
@@ -215,6 +217,19 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+    "handoffs: marks tests for agent handoffs",
+    "memory: marks tests for memory system",
+    "mcp: marks tests for MCP integration",
+    "performance: marks tests for performance testing",
+    "cli: marks tests for CLI functionality",
+    "deployment: marks tests for deployment functionality",
+    "workflows: marks tests for workflow functionality",
+    "docker: marks tests for Docker functionality",
+    "agent: marks tests for agent functionality",
+    "kubernetes: marks tests for Kubernetes functionality",
+    "monitoring: marks tests for monitoring functionality",
+    "core: marks tests for core functionality",
 ]
 filterwarnings = [
     "error",

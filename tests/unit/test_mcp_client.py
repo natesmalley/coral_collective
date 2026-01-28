@@ -259,7 +259,8 @@ class TestMCPTransport:
         mock_process = AsyncMock()
         mock_stdin = AsyncMock()
         mock_process.stdin = mock_stdin
-        mock_stdin.is_closing.return_value = False
+        # Make is_closing a Mock that returns False when called
+        mock_stdin.is_closing = Mock(return_value=False)
         
         transport = MCPTransport("test_server", mock_process)
         

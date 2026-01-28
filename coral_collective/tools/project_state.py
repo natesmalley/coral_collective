@@ -5,11 +5,11 @@ Handles project state persistence and context management for CoralCollective.
 """
 
 import json
-import os
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional
+
 import yaml
 
 
@@ -98,7 +98,7 @@ class ProjectStateManager:
             if not state_file.exists():
                 return None
 
-            with open(state_file, "r") as f:
+            with open(state_file) as f:
                 state_data = yaml.safe_load(f)
 
             return state_data

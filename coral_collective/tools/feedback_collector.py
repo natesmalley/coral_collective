@@ -4,12 +4,12 @@ Agent Feedback Collector
 Utility to collect and process agent feedback after interactions
 """
 
-import yaml
-import json
+import argparse
 from datetime import datetime
 from pathlib import Path
-import argparse
 from typing import Dict, List, Optional
+
+import yaml
 
 
 class FeedbackCollector:
@@ -37,7 +37,7 @@ class FeedbackCollector:
     ):
         """Add new feedback entry for an agent"""
         try:
-            with open(self.feedback_path, "r") as f:
+            with open(self.feedback_path) as f:
                 data = yaml.safe_load(f) or {}
         except FileNotFoundError:
             data = {"version": "1.0", "agents": {}}
@@ -76,12 +76,12 @@ class FeedbackCollector:
     ):
         """Record an agent interaction for metrics"""
         try:
-            with open(self.metrics_path, "r") as f:
+            with open(self.metrics_path) as f:
                 data = yaml.safe_load(f) or {}
         except FileNotFoundError:
             data = self.initialize_metrics()
 
-        month = datetime.now().strftime("%Y-%m")
+        # month = datetime.now().strftime("%Y-%m")  # Not currently used
 
         if "agent_metrics" not in data:
             data["agent_metrics"] = {}
@@ -158,7 +158,7 @@ class FeedbackCollector:
     def get_agent_feedback(self, agent: str) -> List[Dict]:
         """Get all feedback for a specific agent"""
         try:
-            with open(self.feedback_path, "r") as f:
+            with open(self.feedback_path) as f:
                 data = yaml.safe_load(f)
 
             if agent in data.get("agents", {}):
@@ -171,7 +171,7 @@ class FeedbackCollector:
     def get_agent_metrics(self, agent: str) -> Dict:
         """Get metrics for a specific agent"""
         try:
-            with open(self.metrics_path, "r") as f:
+            with open(self.metrics_path) as f:
                 data = yaml.safe_load(f)
 
             if agent in data.get("agent_metrics", {}):
@@ -186,13 +186,13 @@ class FeedbackCollector:
         report = []
 
         try:
-            with open(self.metrics_path, "r") as f:
+            with open(self.metrics_path) as f:
                 metrics_data = yaml.safe_load(f)
         except FileNotFoundError:
             return "No metrics data found"
 
         try:
-            with open(self.feedback_path, "r") as f:
+            with open(self.feedback_path) as f:
                 feedback_data = yaml.safe_load(f)
         except FileNotFoundError:
             feedback_data = {}

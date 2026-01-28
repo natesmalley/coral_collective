@@ -4,10 +4,11 @@ CoralCollective Configuration Module
 Handles loading and management of agent and model configurations.
 """
 
-import yaml
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+import yaml
 
 
 def load_agents_config(config_path: Optional[str] = None) -> Dict[str, Any]:
@@ -36,7 +37,7 @@ def load_agents_config(config_path: Optional[str] = None) -> Dict[str, Any]:
         else:
             raise FileNotFoundError("Could not find agents.yaml configuration file")
 
-    with open(path, "r") as f:
+    with open(path) as f:
         return yaml.safe_load(f)
 
 
@@ -75,7 +76,7 @@ def load_model_config(config_path: Optional[str] = None) -> Dict[str, Any]:
                     "Could not find model assignments configuration file"
                 )
 
-    with open(path, "r") as f:
+    with open(path) as f:
         return yaml.safe_load(f)
 
 
