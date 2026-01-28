@@ -7,7 +7,7 @@ chromadb==0.4.24
 numpy==1.26.4
 scipy==1.13.1
 sentence-transformers==2.7.0
-transformers==4.44.2
+transformers==4.53.0
 torch==2.4.1
 pandas==2.2.3
 
