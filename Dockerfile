@@ -107,12 +107,13 @@ RUN apt-get update && apt-get install -y \
     sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy memory requirements
+COPY requirements-memory.txt ./
+
 USER coral
 
-# Install memory dependencies
-RUN pip install --no-cache-dir \
-    numpy>=1.24.0 \
-    scipy>=1.10.0
+# Install memory dependencies from pinned versions file
+RUN pip install --no-cache-dir -r requirements-memory.txt
 
 # Create data directories
 RUN mkdir -p /app/data /app/.coral

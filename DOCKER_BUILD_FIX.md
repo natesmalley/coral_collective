@@ -20,22 +20,42 @@ The Docker build was failing with a "resolution-too-deep" error when trying to i
 
 ## How to Use
 
-### Basic Docker Build (without memory dependencies)
+### Option 1: Basic Install (Recommended - Fast Build)
+For core functionality without memory/ML features:
 ```bash
+# Build and run the standard container
 docker-compose up coral-collective
 ```
+This installs: MCP tools, development tools, documentation tools
+Build time: ~30 seconds
 
-### With Memory Dependencies
-If you need the memory/vector store features:
+### Option 2: Full Install with Memory Dependencies
+For applications requiring vector storage and ML features:
 
-1. Build the memory-enabled image:
+**Method A: Use the memory profile (Recommended for full install)**
 ```bash
+# Build and run the memory-enabled container
 docker-compose --profile memory up coral-memory
 ```
+This includes: All core functionality + chromadb, torch, transformers, sentence-transformers, etc.
+Build time: ~5-10 minutes
 
-2. Or install memory deps manually in a running container:
+**Method B: Add to existing container**
 ```bash
+# First, start the basic container
+docker-compose up -d coral-collective
+
+# Then install memory dependencies
 docker exec -it coral-collective-dev pip install -r requirements-memory.txt
+```
+
+### Option 3: Local Development (No Docker)
+```bash
+# Install core dependencies
+pip install -e .[mcp,dev,docs]
+
+# Optionally add memory dependencies
+pip install -r requirements-memory.txt
 ```
 
 ## Alternative Solutions
