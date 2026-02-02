@@ -9,7 +9,7 @@ scipy==1.13.1
 sentence-transformers==2.7.0
 transformers==4.44.2
 torch==2.8.0
-pandas==2.2.3
+pandas==2.3.3
 
 # These dependencies have specific version requirements
 # Install them separately if you encounter issues
