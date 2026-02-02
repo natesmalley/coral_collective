@@ -41,7 +41,7 @@ jobs:
       
       - name: Upload pip-audit results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pip-audit-results
           path: pip-audit-report.txt
@@ -69,7 +69,7 @@ jobs:
       
       - name: Upload Bandit results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bandit-results
           path: bandit-report.json
@@ -96,7 +96,7 @@ jobs:
       
       - name: Upload Safety results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: safety-results
           path: safety-report.json
@@ -160,7 +160,7 @@ jobs:
       
       - name: Upload OWASP results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: owasp-dependency-check-results
           path: reports/
@@ -215,7 +215,7 @@ jobs:
       
       - name: Upload Trufflehog results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: trufflehog-results
           path: trufflehog-report.json
@@ -255,7 +255,7 @@ jobs:
           echo "Detailed results available in workflow artifacts." >> SECURITY_REPORT.md
       
       - name: Upload Security Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: security-report-summary
           path: SECURITY_REPORT.md
