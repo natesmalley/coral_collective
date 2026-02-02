@@ -3,7 +3,7 @@
 # Note: These are heavy ML dependencies that may take time to install
 
 # Pinned versions to avoid dependency resolution issues
-chromadb==0.4.24
+chromadb==1.4.1
 numpy==1.26.4
 scipy==1.13.1
 sentence-transformers==2.7.0
