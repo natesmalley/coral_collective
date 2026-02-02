@@ -4,7 +4,7 @@
 
 # Pinned versions to avoid dependency resolution issues
 chromadb==0.4.24
-numpy==1.26.4
+numpy==2.0.2
 scipy==1.13.1
 sentence-transformers==2.7.0
 transformers==4.44.2
